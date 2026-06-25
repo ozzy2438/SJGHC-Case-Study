@@ -1,0 +1,15 @@
+Kategori,Metrik,Değer
+Veri Seti,Toplam Epizod,"30,615"
+Veri Seti,Analiz Dönemi,2023 (12 ay)
+Veri Seti,Hastane Tipi,Özel akut bakım (HospitalType=2)
+Hasta Profili,Medyan Yaş,67 yaş
+Hasta Profili,65+ Yaş Oranı,%54.8
+Hasta Profili,Günübirlik Oranı,%78.4
+Maliyet,Medyan Fatura,$650
+Maliyet,Ortalama Fatura,"$2,685"
+Maliyet,Maksimum Fatura,"$69,138"
+En Sık MDC,Kategori,L — Böbrek/Üriner (%32.7)
+Model,Algoritma,XGBoost Regressor
+Model,Doğruluk (R²),0.805
+Model,Ortalama Hata (MAE),$751
+Model,Yüzde Hata (MAPE),%24.8
