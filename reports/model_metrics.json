@@ -1,0 +1,26 @@
+{
+  "log_rmse": 0.5226,
+  "log_r2": 0.8704,
+  "aud_rmse": 1861.73,
+  "aud_mae": 751.39,
+  "aud_r2": 0.805,
+  "mape_pct": 24.76,
+  "n_train": 24492,
+  "n_test": 6123,
+  "best_iter": 162,
+  "features": [
+    "LOS",
+    "Age",
+    "comorbidity_count",
+    "procedure_count",
+    "MDC_enc",
+    "Sex",
+    "CareType",
+    "UrgencyOfAdmission",
+    "SameDayStatus",
+    "ModeOfSeparation",
+    "adm_month"
+  ],
+  "cv_rmse_mean": 0.5403,
+  "cv_rmse_std": 0.0115
+}
