@@ -1,0 +1,56 @@
+{
+  "Sex": {
+    "1": "Male",
+    "2": "Female",
+    "3": "Other / Indeterminate",
+    "9": "Not stated / inadequately described"
+  },
+  "CareType": {
+    "1": "Acute care",
+    "2": "Rehabilitation",
+    "3": "Palliative care",
+    "4": "Geriatric evaluation & management",
+    "5": "Psychogeriatric care",
+    "6": "Maintenance care",
+    "7": "Newborn",
+    "8": "Other admitted patient care",
+    "9": "Organ procurement (posthumous)",
+    "10": "Hospital boarder",
+    "11": "Mental health"
+  },
+  "UrgencyOfAdmission": {
+    "1": "Emergency (within 24h)",
+    "2": "Elective (planned)",
+    "3": "Not assigned",
+    "9": "Not reported"
+  },
+  "SameDayStatus": {
+    "1": "Same-day patient (admit & separate same date)",
+    "2": "Overnight / multi-day patient"
+  },
+  "ModeOfSeparation": {
+    "1": "Discharge / transfer to other acute hospital",
+    "2": "Discharge / transfer to residential aged care",
+    "3": "Discharge / transfer to other health-care accommodation",
+    "4": "Statistical separation - type change",
+    "5": "Left against medical advice",
+    "6": "Statistical separation - care type change",
+    "7": "Died",
+    "8": "Other (incl. discharge to usual residence)",
+    "9": "Not reported"
+  },
+  "HospitalType": {
+    "1": "Public acute hospital",
+    "2": "Public psychiatric hospital",
+    "3": "Private acute hospital",
+    "4": "Private psychiatric hospital",
+    "5": "Private day hospital facility"
+  },
+  "_meta": {
+    "charge_unit": "cents (AUD)",
+    "charge_to_aud_divisor": 100,
+    "date_format": "DDMMYYYY (integer)",
+    "source_spec_file": "hcp_spec_2022-23.xlsx",
+    "spec_url": "https://www.health.gov.au/resources/publications/hcp-data-specifications-hospital-to-insurer-2022-23"
+  }
+}

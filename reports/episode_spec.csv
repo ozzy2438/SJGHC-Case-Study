@@ -1,0 +1,518 @@
+No,Data Item,METeOR identifier,ECLIPSE identifier,Obligation,Position Start,Position End,Type & size,Format,Repetition,Coding description,Edit Rules,Error code/s
+1.0,Insurer  Membership Identifier,,,M,1.0,15.0,A(15),"Left justify
+Blank fill ",1.0,"Insurer membership identifier.
+",Reject record if blank,EE001
+2.0,Insurer Identifier,,,M,16.0,18.0,A(3),"Left justify
+",1.0,Insurer identifier selected from the list of registered private health insurers. ,Reject record if not a valid insurer code,EE002
+3.0,Episode Identifier,,,M,19.0,33.0,A(15),Left justify,1.0,Unique episode identifier for this episode of care. ,"Reject record if blank
+Reject record if not unique within monthly file","EE003
+EE003.1"
+4.0,Family Name,613331,,M,34.0,61.0,A(28),"Left justify
+",1.0,"That part of a name a person usually has in common with some other members of his/her family, as distinguished from his/her given names, as represented by text.",Reject record if blank,EE004
+5.0,Given Name,613340,,M,62.0,81.0,A(20),"Left justify
+",1.0,"The person's identifying name within the family group or by which the person is socially identified, as represented by text.",Identify record if blank,EW005
+6.0,Date of Birth,287007,,M,82.0,89.0,A(8),DDMMYYYY,1.0,"The date of birth of the person.
+",Reject record if not in format DDMMYYYY,EE006
+7.0,Postcode - Australian,611398,,M,90.0,93.0,N(4),"Right justify
+Zero prefix",1.0,"The numeric descriptor for a postal delivery area, aligned with locality, suburb or place for the address of a person.
+Codes 9999 = unknown postcode 
+and     8888 = overseas 
+will be used instead of METeOR codes  0097, 0098, 0099.",Reject record if not (a valid Australian postcode or 9999 or 8888),EE007
+8.0,Sex,635126,,M,94.0,94.0,N(1),,1.0,"The distinction between male, female, and others who do not have biological characteristics typically associated with either the male or female sex, as represented by a code.
+1 = Male
+2 = Female
+3 = Other
+9 = Not stated / inadequately described","Reject record if not (1, 2, 3 or 9)",EE008
+9.0,Admission Date,695137,,M,95.0,102.0,A(8),DDMMYYYY,1.0,Date on which an admitted patient commences an episode of care.,Reject record if not in format DDMMYYYY,EE009
+10.0,Separation Date,270025,,M,103.0,110.0,A(8),DDMMYYYY,1.0,"Date on which an admitted patient completes an episode of care.
+","Reject file if not in format DDMMYYYY, or if not ≥ admission date, or if MM is not same as month input in Insurer Header",EE010
+11.0,Hospital Type,,,M,111.0,111.0,N(1),,1.0,"The type of hospital where the episode occurred.
+1 = Public
+2 = Private
+3 = Private Day Facility
+4 = Public Day Facility
+9 = Other/unknown","Reject record if not (1, 2, 3, 4 or 9).
+Identify if hospital type does not match provider hospital table","EE011
+EW011"
+12.0,ICU Days,,,M,112.0,114.0,N(3),"Right justify
+Zero prefix
+",1.0,"The number of days the patient spent in ICU, NICU or PICU.
+Zero fill if not applicable.
+* refer to guide for use.
+","Reject record if not numeric.
+
+Reject record if not zero for day facilities (public or private)
+*warning for public hospitals","EE012.0
+EW012.0*
+EE012.1
+EW012.1*"
+13.0,ICU Hours,471553,,O,115.0,118.0,N(4),"Right justify
+Zero prefix
+",1.0,"The number of completed cumulative hours (rounded down) spent in ICU, NICU or PICU. If a patient has more than one period in ICU, NICU or PICU during this episode, the total duration of all such periods is reported. Zero fill if not applicable
+* refer to guide for use.","If present, reject record if not numeric",EE013
+14.0,Total Psychiatric Care Days,722678,,M,119.0,123.0,N(5),"Right justify
+Zero prefix
+",1.0,"The sum of the number of days or part days of stay that the person received care as an admitted patient or resident within a designated psychiatric unit, minus the sum of leave days occurring during the stay within the designated unit. 
+Zero fill if not applicable.",Reject if not numeric,EE014
+15.0,Diagnosis Related Group,729933,,O,124.0,127.0,A(4),Left justify,1.0,"A patient classification scheme which provides a means of relating the number and types of patients treated in a hospital to the resources required by the hospital, as represented by a code.","If present, identify record if not a valid DRG code for AR DRG version supplied at item 65.",EW015
+16.0,"DRG Version
+(superseded)",,,O,128.0,129.0,A(2),Blank fill,1.0,This field has been retained as a placeholder to minimise system changes. See replacement item: 'AR DRG version' (Item No 65),,
+17.0,Admission Time,682942,,M,130.0,133.0,N(4),hhmm (24 hour clock),1.0,"Time at which an admitted patient commences an episode of care.
+Blank fill if not applicable.
+Mandatory for same-day patients only.","Reject record if blank and same-day status (Item 39) is 1.
+If present, Reject record if not a valid time value in format HHMM (HH is in the range 00-23 and MM is in the range 00-59) ","EE017
+
+EE017.1"
+18.0,Urgency of Admission,686084,,M,134.0,134.0,N(1),,1.0,"Whether the admission has an urgency status assigned and, if so, whether admission occurred on an emergency basis, as represented by a code.
+1 = Urgency status assigned - Emergency
+2 = Urgency status assigned - Elective
+3 = Urgency status not assigned
+9 = Not known/not reported","Reject record if not (1, 2, 3 or 9)",EE018
+19.0,Provider Number of Hospital from which transferred,,,M,135.0,142.0,A(8),"NNNNNNNA
+(upper case)",1.0,"The Commonwealth-issued hospital provider number for the hospital from which a patient has been transferred (Provider number required only when HCP item number 21 is reported as:
+ 1- Admitted patient transferred from another hospital)
+Blank fill if no hospital transfer.
+Overseas hospitals to be coded as OVERSEAS
+
+If a patient was transferred from Accident/Emergency at a different hospital from the one in which this separation occurred, then enter the Commonwealth-issued Provider number of that hospital","Reject record if Source of referral (item 21) is 1 and item 19 is not (a valid 8 character Commonwealth provider number or OVERSEAS)
+
+Reject record if not blank and Source of Referral (item 21)
+is not 1 or 4","EE019
+
+
+
+
+
+
+
+
+EE019.1"
+20.0,"Care Type
+",711010,,M,143.0,145.0,N(3),"Left justify and follow with blank space(s)
+
+
+
+",1.0,"The overall nature of a clinical service provided to an admitted patient during an episode of care (admitted care), or the type of service provided by the hospital for boarders or posthumous organ procurement (care other than admitted care), as represented by a code.
+Admitted care  
+1 Acute care 
+2 Rehabilitation care 
+3 Palliative care 
+4 Geriatric evaluation and management 
+5 Psychogeriatric care 
+6 Maintenance care 
+7 Newborn care 
+11 Mental health care 
+88 Other admitted patient care 
+Care other than admitted care  
+9 Organ procurement—posthumous 
+10 Hospital boarder 
+
+
+
+","Reject record if not 
+(1, 2, 3, 4, 5, 6, 7, 9, 10, 11 or 88)
+(Reject record if not in correct format: must be left justified and followed by blank(s))",EE020
+21.0,Source of Referral,,,M,146.0,146.0,N(1),,1.0,"The facility from which the patient was referred:
+0 = Born in hospital
+1 = Admitted patient transferred from another hospital
+2 = Statistical admission – care type change
+4 = From Accident/Emergency
+5 = From Community Health service
+6 = From Outpatients department
+7 = From Nursing Home
+8 = By outside Medical Practitioner
+9 = Other","Reject record if not (0, 1, 2, 4, 5, 6, 7, 8 or 9)",EE021
+22.0,Discharge Intention on Admission,,,O,147.0,147.0,N(1),,1.0,"The intended mode of separation at time of admission:
+1 = Discharge to an(other) acute hospital
+2 = Discharge to a nursing home
+3 = Discharge to a psychiatric hospital
+4 = Discharge to palliative care unit/hospice
+5 = Discharge to other health care accommodation
+8 = To pass away
+9 = Discharge to usual residence","If present, reject record if not (1, 2, 3, 4, 5, 8 or 9)",EE022
+23.0,"Inter-hospital contracted patient
+",647105,,M,148.0,148.0,N(1),,1.0,"An episode of care for an admitted patient whose treatment and/or care is provided under an arrangement between a hospital purchaser of hospital care (contracting hospital) and a provider of an admitted service (contracted hospital), and for which the activity is recorded by both hospitals, as represented by a code. 
+
+Contracted (destination) hospital                                                                                                                  
+1 = Inter-hospital contracted patient from public sector hospital;                                                                                           
+2 = Inter-hospital contracted patient from private sector hospital;                                                                    
+Contracting (originating) hospital                                                                                                                               
+3 = Inter-hospital contracted patient to public sector hospital;                                                                 
+4 = Inter-hospital contracted patient to private sector hospital;  
+                                                               
+5 = Not inter-hospital contracted;                                                                                                                                                                                                                                                                
+9 = Not stated.
+
+","Reject record if not (1,2,3,4,5 or 9)",EE023
+24.0,Mental Health Legal Status,"722675
+727343",,M,149.0,149.0,N(1),,1.0,"Whether a person is treated on an involuntary basis under the relevant state or territory mental health legislation, at any time during an episode of admitted patient care, an episode of residential care or treatment of a patient/client by a community based service during a reporting period, as represented by a code. 
+
+1 = Involuntary patient 
+2 = Voluntary patient 
+9 = Not reported/unknown","Reject record if not (1, 2 or 9)",EE024
+25.0,Palliative Care Status,,,M,150.0,150.0,N(1),,1.0,"An indicator of whether the episode involved palliative care.
+1 = Patient required palliative care during episode
+2 = No palliative care required during episode
+This item is required because some States do not statistically discharge to palliative care.
+* refer to guide for use.","Reject record if not (1 or 2).
+
+Reject record if 2  AND  ‘care type’ (Item 20) = 3","EE025
+
+EE025.1"
+26.0,Re-admission within 28 Days,,,M,151.0,151.0,N(1),,1.0,"An indicator of the re-admission of a patient to hospital within 28 days of previous discharge for treatment of a similar or related condition.  
+1 = Unplanned re-admission and patient previously treated at this hospital 
+2 = Unplanned re-admission and patient previously treated at another hospital 
+3 = Planned re-admission from this or another hospital
+8 = Not applicable/ not known
+Note: do not include transfers from another hospital as re-admissions","Reject record if not (1, 2, 3 or 8)",EE026
+27.0,Unplanned Theatre Visit During Episode,,,M,152.0,152.0,N(1),,1.0,"An indicator of whether the patient required a theatre visit which was not anticipated or planned at the time of admission:  
+1 = Unplanned theatre visit
+2 = No unplanned theatre visit",Reject record if not (1 or 2),EE027
+28.0,"Birth weight of infant, neonate, stillborn
+",668986,,M,153.0,156.0,N(4),"Right justify
+Zero prefix
+ ",1.0,"The first weight of the live born or stillborn baby obtained after birth, or the weight of the neonate or infant on the date admitted if this is different from the date of birth, measured in grams.
+For live births, birthweight should preferably be measured within the first hour of life before significant postnatal weight loss has occurred. While statistical tabulations include 500 gram groupings for birthweight, weights should not be recorded in those groupings. The actual weight should be recorded to the degree of accuracy to which it is measured.
+
+Weight on the date the infant is admitted should be recorded if the weight is less than or equal to 9000g and age is less than 365 days. An entry of 0000 means the patient’s age >= 365 days or weight was > 9000 grams.
+
+","Reject record if not numeric 
+Identify record if weight > 9000g and LOS <= 365 
+
+Identify record if weight > 0 and LOS > 365 days
+where, LOS = Admission date  (item 9) - Date of Birth (item 6) ","EE028
+EW028.0
+
+
+EW028.1"
+29.0,Hours of Mechanical Ventilation,708842,,M,157.0,160.0,N(4),"Right justify
+Zero prefix
+",1.0,"The total number of hours an admitted patient has spent on continuous ventilator support.
+Continuous ventilatory support refers to the application of ventilation via an invasive artificial airway. For the purposes of this data element, invasive artificial airway is that provided via an endotracheal tube or a tracheostomy tube.
+Zero fill if not applicable.","Reject record if not numeric
+*warning for public hospitals","EE029
+EW029*"
+30.0,Mode of Separation,270094,,M,161.0,162.0,N(2),"Left justify and follow with space
+(may also submit in old format with zero prefix)
+",1.0,"Status at separation of person (discharge/transfer/death) and place to which person is released, as represented by a code.
+1 = discharge/transfer to an(other) acute hospital
+2 = discharge/transfer to a residential aged care service, unless this is the usual place of residence
+3 = discharge/transfer to an(other) psychiatric hospital
+4 = discharge/transfer to other health care accommodation (includes mothercraft hospitals) 
+5 = statistical discharge— type change
+6 = left against medical advice/discharge at own risk 
+7 = statistical discharge from leave
+8 = died
+9 = other (includes discharge to usual residence, own accommodation or welfare institution (includes prisons, hostels and group homes providing primarily welfare services))
+
+","Reject record if not (1, 2, 3, 4, 5, 6, 7, 8, 9, 01, 02, 03, 04, 05, 06, 07, 08 or 09).
+
+",EE030
+31.0,Separation Time,682919,,M,163.0,166.0,N(4),hhmm (24 hour clock),1.0,"Time at which an admitted patient completes an episode of care.
+Blank fill if not applicable.
+Mandatory for same-day patients only.","Reject record if blank and same-day status is 1.
+Reject record if not a valid time value in format HHMM (HH is in the range 00-23 and MM is in the range 00-59) 
+Identify record if hospital type (item 11) is 3 (Private Day Facility) and patient stay exceeds 23 hours","EE031
+
+EE031.1
+
+
+
+EW031"
+32.0,Total Leave Days,270251,,M,167.0,170.0,N(4),"Right justify
+Zero prefix
+ ",1.0,"Sum of the length of leave (date returned from leave minus date went on leave) for all periods within the hospital stay.
+Zero fill if not applicable.",Reject record if not numeric,EE032
+33.0,Provider Number of Hospital to which transferred,,,M,171.0,178.0,A(8),"NNNNNNNA
+(uppercase)",1.0,"The Commonwealth-issued hospital provider number for the hospital to which a patient has been transferred (Provider number required only when HCP item number 30 is reported as: 
+1 = Discharge/transfer to an(other) acute hospital, or
+3 = Discharge/transfer to a(nother) psychiatric hospital
+Blank fill if no hospital transfer.
+Overseas hospitals to be coded as OVERSEAS","Reject record if Mode of separation (item 30) is 1 or 3 and item 33 is not (a valid 8 character Commonwealth provider number or OVERSEAS)
+
+Reject record if not blank and  Mode of Separation (item 30) is 2, 5, 6, 7, 8 or 9.","EE033
+
+
+
+
+EE033.1"
+34.0,Non-Certified Days of Stay,,,M,179.0,182.0,N(4),"Right justify
+Zero prefix
+",1.0,"The number of days spent in the hospital, without certification, that exceeded 35 days. 
+Zero fill if not applicable.","Reject record if not numeric.
+*warning for public hospitals","EE034
+EW034*"
+35.0,Number of days of hospital-in-the-home care,686115,,M,183.0,186.0,N(4),"Right justify
+Zero prefix
+",1.0,"The number of hospital-in-the-home days occurring within an episode of care for an admitted patient.
+Calculate with reference to the date of admission, date of separation, leave days and any date(s) of change between hospital and hospital-in-the-home accommodation.
+Zero fill if not applicable.
+* refer to definitions.","Reject record if not numeric.
+Identify record if not = HITH completed date - HITH commencement date).","EE035
+EW035"
+36.0,Principal Diagnosis,"699609
+746665",,M,187.0,192.0,A(6),"NANNNN
+Left justify
+Strip hyphen, dots & morphology codes",1.0,"Each entry should consist of:
+- one (1) digit that represents the Condition Onset Flag code
+- five (5) alphanumeric characters that represent the principal diagnosis code
+
+Condition Onset Flag (see METeOR 686100)  - A qualifier for each coded diagnosis to indicate the onset of the condition relative to the beginning of the episode of care, as represented by a code. 
+1 = condition with onset during the episode of admitted patient care
+2 = condition not noted as arising during the episode of admitted patient care
+9 = not reported
+Note:
+All patients should report a condition onset flag code of 2 for the principal diagnosis, with the exception of newborns.  Newborns in their admitted birth episode within the hospital may report a condition onset flag code of 1 or 2 for the principal diagnosis.  Newborn episodes can be identified by ICD-10-AM Code Z38.x in the principal or additional diagnosis code field.
+
+Principal Diagnosis - The diagnosis established after study to be chiefly responsible for occasioning an episode of admitted patient care, an episode of residential care or an attendance at the health care establishment, as represented by a code.
+The principal diagnosis should be reported in the most current version of ICD-10-AM and selected according to the National Coding Standards.","Reject record if not a valid ICD-10-AM principal diagnosis code
+
+Identify record if Same-day Status (item 39) = 2 (overnight patient) and Z50N or Z50NN  (where N = 0 to 9)
+
+Identify record if Care Type = 6 and not Z742 or Z75N or Z75NN. (where N = 0 to 9)
+
+Identify record if condition onset flag = 1 and not Z38N (where N = 0 to 9)","EE036
+
+
+EW036.1
+
+
+
+EW036.2
+
+
+
+EW036.3"
+37.0,Additional Diagnosis,"699606
+746667",,M,193.0,486.0,A(6),"NANNNN
+Left justify
+Strip hyphen, dots & morphology codes",49.0,"Each entry should consist of:
+- one (1) digit that represents the Condition Onset Flag code
+- five (5) alphanumeric characters that represent the additional diagnosis code
+
+Condition Onset Flag (see METeOR 686100) - A qualifier for each coded diagnosis to indicate the onset of the condition relative to the beginning of the episode of care, as represented by a code. 
+1 = condition with onset during the episode of admitted patient care
+2 = condition not noted as arising during the episode of admitted patient care
+9 = not reported
+
+Additional diagnosis - A condition or complaint either coexisting with the principal diagnosis or arising during the episode of admitted patient care, episode of residential care or attendance at a health care establishment, as represented by a code.
+Blank means no additional diagnosis codes (or not 49 repetitions).","Reject record if not (a valid ICD-10-AM code or blank).
+
+Identify record if same as ‘Principal Diagnosis Code’","EE037
+
+
+EW037"
+38.0,Procedure,"699716
+746669",,M,487.0,836.0,A(7),"NNNNNNN
+Left justify
+Strip hyphen",50.0,"A clinical intervention represented by a code that:
+is surgical in nature, and/or 
+carries a procedural risk, and/or 
+carries an anaesthetic risk, and/or 
+requires specialised training, and/or 
+requires special facilities or equipment only available in an acute care setting.
+Blank means no ACHI procedure codes (or not 50 repetitions) ",Reject if not (a valid ACHI code or blank).,EE038
+39.0,Same-day Status,,,M,837.0,837.0,N(1),,1.0,"An indicator of whether the patient was admitted to the facility for an overnight stay.
+0 = patient with a valid arrangement allowing for overnight stay for procedure normally performed on a same-day basis.                                  
+1 = same-day patient; 
+2 = overnight patient (other than type 0 above)","Reject record if not (0, 1 or 2).",EE039
+40.0,Principal MBS Item Number,,,M,838.0,851.0,A(14),"Left justify
+",1.0,"A valid Medical Benefits Schedule item according to the relevant MBS Schedule valid for the MBS date (Item 41).
+Blank means there was no applicable MBS item.","If present, reject record if not a valid MBS item from the relevant MBS Schedule valid for the service date (Item 41)",EE040
+41.0,Principal MBS Item Date,,,M,852.0,859.0,A(8),DDMMYYYY,1.0,"The date on which;
+the principal MBS item (item 40) was carried out, or                                                    
+(if item 40 is blank), the first Miscellaneous Service Code (item 53) was carried out.
+
+Must be supplied if principal MBS item number provided (item 40).","If present, reject record if not in format DDMMYYYY.
+Reject record if date is before admission date or after discharge date
+Reject record if blank and item 40 is populated","EE041.0
+
+EE041.1
+
+
+EE041.2"
+42.0,Minutes in theatre or procedure room ,,,M,860.0,863.0,N(4),"Right justify
+Zero prefix
+minutes",1.0,"Total time, in minutes, spent by a patient in operating theatres or procedure rooms during current episode of hospitalisation. (See Explanatory notes)
+Should be populated if surgical ADA code provided in Miscellaneous Service Code field (item 53).
+Must be filled with 0000 if no time spent in operating theatre.
+Blank means there was no applicable MBS Item / ADA code or a public hospital.
+Must be supplied by private hospitals and private day facilities where MBS item number (item 40) or Miscellaneous Service Code (item 53) provided.
+* refer to guide for use.","If present, reject record if not numeric.
+Identify if blank and item 40 or item 53 is populated.","EE042
+
+EW042"
+43.0,Secondary MBS Item numbers,,,M,864.0,989.0,A(14),Left justify,9.0,"Additional MBS item numbers are all MBS items performed in theatre/procedure room/angiography suite, which are not the principal MBS. 
+Blank means that there was no additional MBS item (or not 9 repetitions).
+* refer to guide for use.
+","If present, reject record if not a valid MBS item number from the relevant MBS Schedule(s) current for at least one day during the episode
+
+If present, identify record if principal MBS item (item 40) is blank","EE043
+
+
+
+
+EW043
+
+
+"
+44.0,Accommodation Charge,,,M,990.0,998.0,N(9),"Right justify
+Zero prefix
+$$$$$$$cc (omit decimal point) ",1.0,"The gross amount charged for accommodation (include ex-gratia and patient portion accommodation charges).
+Zero fill if no amount charged.
+* refer to guide for use.","Reject record if not numeric
+
+",EE044
+45.0,Theatre Charge,,,M,999.0,1007.0,N(9),"Right justify
+Zero prefix
+$$$$$$$cc (omit decimal point) ",1.0,"The total amount charged for theatre/procedure room/angiography suite (include ex-gratia and patient portion theatre charges). 
+Zero fill if no amount charged.
+* refer to guide for use.","Reject record if not numeric 
+
+",EE045
+46.0,Labour Ward Charge,,,M,1008.0,1016.0,N(9),"Right justify
+Zero prefix
+$$$$$$$cc (omit decimal point) ",1.0,"The gross amount charged for labour ward (include ex-gratia and patient portion labour ward charges).
+Zero fill if no amount charged.","Reject record if not numeric 
+",EE046
+47.0,Intensive Care Unit Charge,,,M,1017.0,1025.0,N(9),"Right justify
+Zero prefix
+$$$$$$$cc (omit decimal point) ",1.0,"The gross amount charged for ICU (include ex-gratia and patient portion ICU charges). 
+Zero fill if no amount charged.
+* refer to guide for use.","Reject record if not numeric 
+","EE047
+"
+48.0,Prosthesis Charge,,,M,1026.0,1034.0,N(9),"Right justify
+Zero prefix
+$$$$$$$cc (omit decimal point) ",1.0,"The gross maximum amount charged for prosthesis (include ex-gratia prosthesis charges and patient portion),
+Zero fill if no amount charged.","Reject record if not numeric 
+
+",EE048
+49.0,Pharmacy Charge,,,M,1035.0,1043.0,N(9),"Right justify
+Zero prefix
+$$$$$$$cc (omit decimal point) ",1.0,"The gross amount charged for pharmacy (include ex-gratia and patient portion pharmacy charges, exclude discharge medications).
+Zero fill if no amount charged.","Reject record if not numeric 
+
+",EE049
+50.0,Other Charges,,,M,1044.0,1052.0,N(9),"Right justify
+Zero prefix
+$$$$$$$cc (omit decimal point) ",1.0,"The gross charge raised for any chargeable item which cannot be specifically categorised elsewhere (exclude ex-gratia charges, television, phone calls, extra meals, FED, reversals or journal adjustments).
+Zero fill if no amount charged.
+* refer to guide for use.","Reject record if not numeric 
+
+",EE050
+51.0,Bundled Charges,,,M,1053.0,1061.0,N(9),"Right justify
+Zero prefix
+$$$$$$$cc (omit decimal point) ",1.0,"The gross bundled charge raised (include ex-gratia and patient portion bundled charges). 
+Zero fill if no amount charged.
+* refer to guide for use.","Reject record if not numeric 
+
+",EE051
+52.0,Medical Record Number,,,M,1062.0,1081.0,A(20),"Left justify
+Blank fill ",1.0,"The Medical Record Number (or unit record number) that uniquely identifies the patient, regardless of the number of admissions they have had to the facility. ",Reject record if blank,EE052
+53.0,Miscellaneous Service Codes,,,M,1082.0,1191.0,A(11),Left justify ,10.0,"Any miscellaneous service codes (i.e. non MBS items or Australian Dental Association codes from the Australian Schedule of Dental Services and Glossary Twelfth edition 2017 ) used for billing.
+Up to 10 codes may be entered. 
+Blank means that there were no miscellaneous service codes or not 10 repetitions. ",,
+54.0,Hospital-in-the-home care Charges,,,M,1192.0,1200.0,N(9),"Right justify
+Zero prefix
+$$$$$$$cc (omit decimal point)",1.0,"The gross charge raised for hospital-in-the-home care service (include ex-gratia and HITH patient portion charges). 
+Zero fill if no amount charged.
+","Reject record if not numeric 
+*warning for public hospitals","EE054
+EW054*"
+55.0,Special Care Nursery Charges,,,M,1201.0,1209.0,N(9),"Right justify
+Zero prefix
+$$$$$$$cc (omit decimal point)",1.0,"The gross charge raised for SCN (include ex-gratia and patient portion SCN charges, exclude NICU charges). 
+Zero fill if no amount charged.
+* refer to guide for use.","Reject record if not numeric 
+
+",EE055
+56.0,Coronary Care Unit Charges,,,M,1210.0,1218.0,N(9),"Right justify
+Zero prefix
+$$$$$$$cc (omit decimal point)",1.0,"The gross charge raised for CCU (include ex-gratia and patient portion CCU charges).
+Zero fill if no amount charged.
+* refer to guide for use.","Reject record if not numeric
+
+",EE056
+57.0,Special Care Nursery hours,,,O,1219.0,1222.0,N(4),"Right justify
+Zero prefix
+",1.0,"The number of completed cumulative hours (rounded down) spent in SCN. If a patient has more than one period in SCN during this episode, the total duration of all such periods is reported. Zero fill if not applicable
+* refer to guide for use.","If present, reject record if not numeric.",EE057
+58.0,Coronary Care Unit hours,,,O,1223.0,1226.0,N(4),"Right justify
+Zero prefix
+",1.0,"The number of completed cumulative hours (rounded down) spent in CCU. If a patient has more than one period in CCU during this episode, the total duration of all such periods is reported. Zero fill if not applicable
+* refer to guide for use.","If present, reject record if not numeric.",EE058
+59.0,Special Care Nursery days,,,M,1227.0,1229.0,N(3),"Right justify
+Zero prefix
+",1.0,"The number of days the patient spent in a SCN. 
+ Zero fill if not applicable.
+* refer to guide for use.","Reject record if not numeric.
+Reject record if not zero for day facilities (public or private)","EE059.0
+EE059.1"
+60.0,Coronary Care Unit days,,,M,1230.0,1232.0,N(3),"Right justify
+Zero prefix
+",1.0,"The number of days the patient spent in a CCU. 
+Zero fill if not applicable.
+* refer to guide for use.
+","Reject record if not numeric.
+Reject record if not zero for day facilities (public or private)","EE060.0
+EE060.1"
+61.0,Number of Qualified Days for Newborns,722649,,M,1233.0,1237.0,N(5),"Right justify
+Zero prefix
+",1.0,"The number of qualified newborn days occurring within a newborn episode of care.
+Zero fill if not applicable.
+* refer to guide for use.","Reject record if not numeric.
+Reject record if >0000 and (care type not 7 ).","EE061.0
+EE061.1"
+62.0,Hospital-in-the-home care Commencement Date,,,M,1238.0,1245.0,A(8),DDMMYYYY,1.0,"Date on which an admitted patient commences an episode of hospital-in-the-home care services.                                                                                                                                          
+Conditional item if HITH charges (item 54) > 0.
+Blank fill if not applicable.","Reject record if Hospital-In-The-Home Charges (item 54) is populated and item is blank or not in format DDMMYYYY.
+Reject record if commencement date > HITH completed date.","EE062.0
+
+
+
+EE062.1"
+63.0,Hospital-in-the-home care Completed Date,,,M,1246.0,1253.0,A(8),DDMMYYYY,1.0,"Date on which an admitted patient completes an episode of hospital-in-the-home care services.
+Conditional item if HITH charges (item 54) > 0.
+Blank fill if not applicable.
+","Reject record if  Hospital-In-The-Home Charges (item 54) is populated and item is blank or not in format DDMMYYYY.
+Reject record if completed date < HITH commencement date.","EE063.0
+
+
+
+EE063.1"
+64.0,Palliative Care Days,,,M,1254.0,1257.0,N(4),"Right justify
+Zero prefix
+",1.0,"The number of days a patient received palliative care during an episode.  
+Where the entire episode is Palliative, provide the total length of stay in days.
+Conditional item if Palliative Care Status (item 25) = 1. Zero fill if no Palliative Care Days.
+* refer to guide for use.","Reject record if not numeric.
+
+Identify record if 0 and palliative care status (item 25) = 1","EE064
+
+EW064"
+65.0,AR DRG version,,,"CON
+",1258.0,1260.0,A(3),"Left justify.
+
+For two digit codes, follow with a blank space",1.0,"The version of the AR-DRG classification:
+41 = version 4.1                      42 = version 4.2
+50 = version 5.0                      51 = version 5.1
+52 = version 5.2                      60 = version 6.0
+6x = version 6.x                      70 = version 7.0
+80 = version 8.0                      90 = version 9.0
+na = version n.a                      100 = version 10.0
+                                              110 = version 11.0 
+
+Must be supplied if DRG code is provided at item 15 
+This field supersedes previous 'DRG version' field (Item 16) ","If present, identify record if not (41, 42, 50, 51, 52, 60, 6x, 70, 80, 90, na, 100, 110)
+
+
+Identify record if blank and DRG code is provided (Item 15)","EW065.0
+
+
+
+
+EW065.1
+"
+,,,,,,,,,,,,
+,Total record length =   ,1260,,,,,,,,,,
