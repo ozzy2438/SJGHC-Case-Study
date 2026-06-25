@@ -1,0 +1,25 @@
+# =========================================================
+# SJGHC HCP Case Study — Python bağımlılıkları
+# Tüm notebook'lar (NB0 → NB5) için tek liste.
+# Sürümler "compatible release" (~=) ile pinli → tekrar
+# üretilebilir ama küçük güvenlik yamalarına açık.
+# =========================================================
+
+# --- Veri işleme ---
+pandas>=2.2,<3.0
+numpy>=1.26,<3.0
+pyarrow>=15.0           # parquet okuma/yazma
+openpyxl>=3.1           # Excel okuma
+
+# --- Görselleştirme ---
+matplotlib>=3.8
+seaborn>=0.13
+
+# --- Modelleme ---
+scikit-learn>=1.4
+xgboost>=2.0
+shap>=0.45              # NB4 feature importance açıklaması
+
+# --- Notebook / IDE ---
+jupyter>=1.0
+ipykernel>=6.29

@@ -1,0 +1,42 @@
+# =========================================================
+# SJGHC HCP Case Study — .gitignore
+# Felsefe: Gizli veri + türetilmiş dosyalar + ortam dosyaları
+# asla GitHub'a gitmesin. Sadece KOD ve DOKÜMANTASYON gider.
+# =========================================================
+
+# --- 1) Confidential / hasta verisi (ASLA commit etme) ---
+HCP Dataset for Case Study.xlsx
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+*.parquet
+
+# --- 2) Python sanal ortam ---
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+
+# --- 3) Jupyter ---
+.ipynb_checkpoints/
+*.nbconvert.ipynb
+
+# --- 4) Ortam değişkenleri / sırlar ---
+.env
+.env.local
+
+# --- 5) İşletim sistemi çöpleri ---
+.DS_Store
+Thumbs.db
+
+# --- 6) IDE ---
+.vscode/
+.idea/
+
+# --- 7) Geçici dosyalar ---
+*.log
+*.tmp
+~$*
