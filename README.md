@@ -17,6 +17,22 @@
 
 ---
 
+## 🧭 Sistem Nasıl Çalışıyor?
+
+```mermaid
+flowchart LR
+    A[HCP Episode Data] --> B[Cleaning & Feature Engineering]
+    B --> C[EDA & Benchmarking]
+    C --> D[Model Training
+Random Forest / XGBoost]
+    D --> E[Expected Charge Prediction]
+    E --> F[SHAP Explanation]
+    F --> G[Unusual Charge Review
+& Decision Support]
+```
+
+Bu akış, tamamlanmış bir hasta epizodunun veriden modele, oradan da açıklanabilir charge benchmarking çıktısına nasıl dönüştüğünü gösterir.
+
 ## 🎯 Projenin Amacı
 
 De-identified HCP epizod verisinden (~30.6K kayıt × 162 sütun) **ticari etki odaklı** bir analiz çıkarmak ve bunu explainable bir **episode-level charge benchmarking modeli** ile desteklemek. Çıktı: 15 dakikalık yönetim sunumu ve teknik doğrulama paketi.
