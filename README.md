@@ -1,5 +1,15 @@
 # SJGHC HCP Case Study — Data Scientist (Funding & Costing)
 
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/ozzy2438/SJGHC-Case-Study/main/figures/figures_slideshow.gif" alt="SJGHC Analysis — 18 Figures Slideshow" width="900" />
+
+*▶ 18 analiz grafiği · her kare 3 sn · sonsuz döngü*
+
+</div>
+
+---
+
 > **Adayın Adı:** Osman Orka  
 > **Pozisyon:** Data Scientist (Funding & Costing) — St John of God Health Care  
 > **Teslim Tarihi:** 30 Haziran 2026, 09:00 AWST  
