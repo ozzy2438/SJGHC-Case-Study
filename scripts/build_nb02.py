@@ -3,7 +3,7 @@
 Build 02_cleaning_features.ipynb
 
 Roadmap adımları:
-  2.0  hcp.parquet yükle + null_summary'den 27 boş sütunu drop et (162→135)
+  2.0  hcp.parquet yükle + null_summary'den boş/near-empty sütunları drop et
   2.1  Tarih parse (DDMMYYYY int→datetime) + tarih hatası bayrağı
   2.2  LOS (yatış günü) + Age (yatış anındaki yaş) türet
   2.3  comorbidity_count + procedure_count
@@ -35,7 +35,7 @@ cells.append(md(
 NB1'de veriyi *tanıdık*. Şimdi onu *kullanışlı* hale getireceğiz.
 
 Ham verinin sorunları:
-1. **27 sütun tamamen boş** → silinecek (162 → 135 sütun)
+1. **Boş veya neredeyse boş sütunlar** → `null_summary.csv` kuralıyla çıkarılacak
 2. **Tarihler sayı formatında** (`1012023` gibi) → gerçek tarihe çevrilecek
 3. **"Hasta kaç gün yattı?", "Toplam fatura ne kadar?"** → henüz yok → türetilecek
 
@@ -52,10 +52,10 @@ cells.append(md(
 """---
 ## 2.0 — Veri Yükleme ve Boş Sütun Temizliği
 
-**Analoji:** Masanızda 162 klasör var. NB1 size "27 tanesi tamamen boş" dedi.  
-İlk iş: o boş klasörleri çöpe atmak. Masa temizlenir, çalışmak kolaylaşır.
+**Analoji:** Masanızda 162 klasör var. NB1 size hangilerinin boş veya neredeyse boş olduğunu söyledi.  
+İlk iş: o klasörleri çalışma setinden çıkarmak. Masa temizlenir, çalışmak kolaylaşır.
 
-NB1'in ürettiği `null_summary.csv`'yi okuyup, `null_pct == 100` olan sütunları drop ediyoruz.  
+NB1'in ürettiği `null_summary.csv`'yi okuyup, `null_pct >= 99.9` olan sütunları drop ediyoruz.  
 Bu sayede hangi sütunları neden sildiğimiz kayıt altında — kararımız **belgelenmiş**.
 """
 ))
@@ -74,7 +74,7 @@ print(f"Ham veri: {df.shape[0]:,} satır × {df.shape[1]} sütun")
 ))
 
 cells.append(code(
-"""# NB1'in ürettiği null_summary.csv'den %100 boş sütunları al
+"""# NB1'in ürettiği null_summary.csv'den boş veya neredeyse boş sütunları al
 null_summary = pd.read_csv(ROOT / "reports/null_summary.csv")
 drop_cols = null_summary.loc[null_summary["null_pct"] >= 99.9, "column"].tolist()
 
@@ -278,7 +278,7 @@ HCP'de `AdditionalDiagnosis1` ... `AdditionalDiagnosis41` sütunları var.
 Her dolu sütun = 1 ek tanı.
 
 **Neden önemli?**  
-Komorbidite sayısı ↑ → Bakım karmaşıklığı ↑ → Maliyet ↑  
+Komorbidite sayısı ↑ → Bakım karmaşıklığı ve billed charge ile ilişkili olabilir  
 Bu, modelimizin en güçlü tahmin özelliklerinden biri olacak.
 
 ### Prosedür sayısı
@@ -345,7 +345,7 @@ print(f"Prosedür      — Ort: {df['procedure_count'].mean():.2f}"
 # ──────────────────────────────────────────────────────────
 cells.append(md(
 """---
-## 2.4 — Toplam Ücret ($AUD)
+## 2.4 — Toplam Billed Charge ($AUD)
 
 ### HCP'de ücretler nasıl saklanıyor?
 
@@ -361,8 +361,15 @@ kayan nokta hatası olmaz. Bu hastane veri tabanlarında yaygın bir yaklaşımd
 
 **Dönüşüm:** `÷ 100`
 
-**Hedef değişken:** `total_charge_aud` — tüm charge sütunlarının toplamının AUD cinsinden karşılığı.  
+**Hedef değişken:** `total_charge_aud` — tüm HCP charge component sütunlarının toplamının AUD cinsinden karşılığı.  
 NB4'teki modelimiz bu değeri **tahmin etmeye** çalışacak.
+
+**Leakage kuralı:** `total_charge_aud` değerini oluşturan hiçbir charge/benefit component sütunu
+model feature'ı olarak kullanılamaz. Bu component'ler yalnızca hedefi üretmek ve hedef
+kompozisyonunu belgelemek için kullanılır.
+
+Bu veri setindeki charge alanları numeric geldiği için missing charge component yoksa `0`
+"bu component için charge yok" olarak yorumlanır. Unknown/missing olsaydı ayrı raporlanmalıydı.
 """
 ))
 
@@ -379,7 +386,7 @@ for c in charge_cols:
 ))
 
 cells.append(code(
-"""# Toplam ücret: tüm charge sütunlarını topla, kuruş → AUD
+"""# Toplam billed charge: tüm charge sütunlarını topla, kuruş → AUD
 df["total_charge_aud"] = df[charge_cols].sum(axis=1) / 100
 
 tc = df["total_charge_aud"]
@@ -394,6 +401,29 @@ print(f"  %95      : ${tc.quantile(0.95):>10,.2f}")
 print(f"  Max      : ${tc.max():>10,.2f}")
 print(f"\\n  Sıfır ücretli epizod: {(tc == 0).sum():,}"
       f"  ({(tc==0).mean()*100:.1f}%)")
+"""
+))
+
+cells.append(code(
+"""# Target composition: hangi charge component'leri hedefe girdi?
+composition = []
+for col in charge_cols:
+    s = pd.to_numeric(df[col], errors="coerce")
+    nonzero = s.fillna(0) != 0
+    composition.append({
+        "charge_component": col,
+        "missing_count": int(s.isna().sum()),
+        "nonzero_count": int(nonzero.sum()),
+        "total_aud": round(float(s.fillna(0).sum() / 100), 2),
+        "median_nonzero_aud": round(float((s[nonzero] / 100).median()), 2) if nonzero.any() else 0.0,
+    })
+
+target_composition = pd.DataFrame(composition)
+reports_dir = ROOT / "reports"
+reports_dir.mkdir(exist_ok=True)
+target_composition.to_csv(reports_dir / "target_composition.csv", index=False)
+print("✓ Kaydedildi: reports/target_composition.csv")
+print(target_composition.to_string(index=False))
 """
 ))
 

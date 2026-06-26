@@ -1,0 +1,2 @@
+split,actual_high_cost_definition,predicted_high_cost_definition,actual_high_threshold_aud,predicted_high_threshold_aud,actual_high_n,predicted_high_n,true_positive_n,top_decile_recall,top_decile_precision
+random_80_20,actual charge >= train P90,predicted charge >= test prediction P90,7891.9,6708.39,594,613,457,0.7694,0.7455

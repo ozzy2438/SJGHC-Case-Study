@@ -3,13 +3,13 @@
 Build 03_eda.ipynb — Keşifsel Veri Analizi + 7 Sunum Grafiği
 
 Grafik listesi:
-  3.1  Maliyet dağılımı — histogram (ham + log) → sağa çarpıklık hikayesi
-  3.2  MDC bazında medyan maliyet — en pahalı kategoriler
-  3.3  Yaş grubu vs ortalama maliyet — demografik maliyet profili
-  3.4  LOS vs maliyet — yatış süresi-maliyet ilişkisi
-  3.5  Komorbidite sayısı vs ortalama maliyet — karmaşıklık etkisi
-  3.6  Günübirlik vs yatışlı maliyet kutusu — portföy karşılaştırması
-  3.7  Aylık hacim + ortalama maliyet trendi
+  3.1  Charge dağılımı — histogram (ham + log) → sağa çarpıklık hikayesi
+  3.2  MDC bazında medyan charge — kategori benchmarkları
+  3.3  Yaş grubu vs ortalama charge — demografik profil
+  3.4  LOS vs charge — yatış süresi-charge ilişkisi
+  3.5  Komorbidite sayısı vs medyan charge — karmaşıklık ilişkisi
+  3.6  Günübirlik vs yatışlı charge kutusu — portföy karşılaştırması
+  3.7  Aylık hacim + ortalama charge trendi
 """
 import nbformat as nbf
 from pathlib import Path
@@ -36,12 +36,12 @@ NB2'de verimizi temizledik ve yeni özellikler türettik.
 Şimdi **"veri bize ne anlatıyor?"** sorusunu grafiklere döküyoruz.
 
 Bu notebook 7 grafik üretiyor. Her biri:
-1. **Bir soruyu cevaplar** (ör. "Yaş arttıkça maliyet de artar mı?")
+1. **Bir soruyu cevaplar** (ör. "Yaş grupları arasında billed charge farkı var mı?")
 2. **Sunumda kullanılacak** — `figures/` klasörüne yüksek kaliteli PNG olarak kaydedilir
 3. **Mülakat sorusuna hazırlık** sağlar (ör. "Veriyi nasıl anladınız?")
 
 **Hedef kitle:** SJGHC Funding & Costing ekibi  
-**Amaç:** Hastane maliyet yapısını ve tahmin modelinin motivasyonunu görsel olarak açıklamak
+**Amaç:** Episode-level billed charge yapısını ve tahmin modelinin motivasyonunu görsel olarak açıklamak
 """
 ))
 
@@ -117,11 +117,11 @@ print("Stil ayarları uygulandı.")
 # ──────────────────────────────────────────────────────────
 cells.append(md(
 """---
-## Grafik 1 — Maliyet Dağılımı: Ham ve Log Ölçek
+## Grafik 1 — Charge Dağılımı: Ham ve Log Ölçek
 
 **Soru:** Toplam fatura nasıl dağılıyor?
 
-**Ham dağılım:** Büyük çoğunluk düşük maliyetli (günübirlik $650), ama bazı vakalar $50,000+ harcıyor.  
+**Ham dağılım:** Büyük çoğunluk düşük billed charge seviyesinde, ama bazı epizodlar $50,000+ charge değerine sahip.  
 Buna "**sağa çarpık dağılım**" deniyor (çan eğrisi sola dayanıyor, kuyruğu sağa uzuyor).
 
 **Log ölçek ne işe yarıyor?**  
@@ -138,7 +138,7 @@ tc = df["total_charge_aud"].clip(upper=df["total_charge_aud"].quantile(0.99))
 
 # Sol: Ham dağılım
 axes[0].hist(tc, bins=80, color=PALETTE_MAIN, edgecolor="white", linewidth=0.4)
-axes[0].set_title("Ham Maliyet Dağılımı\\n(sağa çarpık)", fontweight="bold")
+axes[0].set_title("Ham Charge Dağılımı\\n(sağa çarpık)", fontweight="bold")
 axes[0].set_xlabel("Toplam Fatura ($AUD)")
 axes[0].set_ylabel("Epizod Sayısı")
 axes[0].xaxis.set_major_formatter(mticker.FuncFormatter(
@@ -151,7 +151,7 @@ axes[0].legend()
 # Sağ: Log ölçek
 log_tc = np.log1p(df["total_charge_aud"].clip(lower=0))
 axes[1].hist(log_tc, bins=60, color="#2980b9", edgecolor="white", linewidth=0.4)
-axes[1].set_title("Log Ölçek Maliyet Dağılımı\\n(neredeyse normal)", fontweight="bold")
+axes[1].set_title("Log Ölçek Charge Dağılımı\\n(daha dengeli)", fontweight="bold")
 axes[1].set_xlabel("log(1 + Toplam Fatura)")
 axes[1].set_ylabel("Epizod Sayısı")
 log_med = np.log1p(df["total_charge_aud"].median())
@@ -174,16 +174,16 @@ print(f"  Log sonrası: {log_tc.skew():.2f} çarpıklık (0'a yakın = daha norm
 # ──────────────────────────────────────────────────────────
 cells.append(md(
 """---
-## Grafik 2 — MDC Bazında Medyan Maliyet
+## Grafik 2 — MDC Bazında Medyan Charge
 
-**Soru:** Hangi hastalık kategorisi en pahalı?
+**Soru:** Hangi hastalık kategorisinde tipik billed charge daha yüksek?
 
 Medyan kullanıyoruz çünkü "ortalama" aykırı değerlerden etkileniyor.  
 Medyan: "Tam ortadaki hastanın faturası ne kadar?" → daha güvenilir.
 
-Bu grafik sunumda çok güçlü bir soru doğuracak:  
-**"Neden bazı kategoriler diğerlerinden 10 kat daha pahalı?"**  
-→ Cevap: ameliyat karmaşıklığı, prosedür sayısı, yatış süresi.
+Bu grafik sunumda şu soruyu doğurur:  
+**"Bu kategori farkları hangi case-mix, same-day oranı, LOS ve prosedür profilleriyle ilişkili?"**  
+DRG-level analiz olmadan nedensel açıklama yapmıyoruz.
 """
 ))
 
@@ -235,7 +235,7 @@ for bar, val in zip(bars, mdc_stats["median"]):
             f"${val:,.0f}", va="center", ha="left", fontsize=9.5, color="#2c3e50")
 
 ax.set_xlabel("Medyan Toplam Fatura ($AUD)", fontsize=12)
-ax.set_title("MDC Kategorisine Göre Medyan Hasta Maliyeti\\n"
+ax.set_title("MDC Kategorisine Göre Medyan Episode Charge\\n"
              "(en az 50 epizod olan kategoriler gösterildi)",
              fontweight="bold", fontsize=14)
 ax.xaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"${x:,.0f}"))
@@ -252,14 +252,12 @@ print(f"  En ucuz MDC  : {mdc_stats.iloc[0]['MDC']} = ${mdc_stats.iloc[0]['media
 # ──────────────────────────────────────────────────────────
 cells.append(md(
 """---
-## Grafik 3 — Yaş Grubu vs Ortalama Maliyet
+## Grafik 3 — Yaş Grubu vs Ortalama Charge
 
-**Soru:** Yaşlı hastalar gerçekten daha pahalı mı?
+**Soru:** Yaş grupları arasında billed charge farkı var mı?
 
-Genellikle "evet" — çünkü yaşlı hastalarda:
-- Daha fazla komorbidite var
-- Prosedürler daha uzun sürüyor
-- İyileşme süreci daha yavaş → daha uzun yatış
+Bu grafik yalnızca gözlenen ilişkiyi gösterir. Yaş farkları; komorbidite,
+prosedür yoğunluğu, LOS ve case-mix ile karışabilir.
 
 Ama dikkat: Bu veri **Avustralya özel hastane** verisi.  
 Özel sigortalı yaşlı hastalar seçici tedavi alıyor — bu bazı sürprizler yaratabilir.
@@ -296,7 +294,7 @@ ax.axhline(overall_mean, color=PALETTE_ACC, linestyle="--", lw=2,
 
 ax.set_xlabel("Yaş Grubu", fontsize=12)
 ax.set_ylabel("Ortalama Toplam Fatura ($AUD)", fontsize=12)
-ax.set_title("Yaş Grubuna Göre Ortalama Hasta Maliyeti",
+ax.set_title("Yaş Grubuna Göre Ortalama Episode Charge",
              fontweight="bold", fontsize=14)
 ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"${x:,.0f}"))
 ax.legend()
@@ -311,17 +309,17 @@ save("03_age_cost.png")
 # ──────────────────────────────────────────────────────────
 cells.append(md(
 """---
-## Grafik 4 — Yatış Süresi (LOS) vs Maliyet
+## Grafik 4 — Yatış Süresi (LOS) vs Charge
 
-**Soru:** Daha uzun yatan = daha pahalı mı?
+**Soru:** LOS arttıkça billed charge nasıl değişiyor?
 
-Beklendiği gibi evet — ama ilişki doğrusal değil.  
-Her geçen gün aynı maliyeti eklemez; ilk birkaç gün çok pahalı (ameliyat, yoğun bakım),  
-sonraki günler daha ucuz (iyileşme/bakım).
+Gözlenen ilişkide LOS yükseldikçe medyan charge da yükseliyor, ancak bu
+nedensel ve doğrusal bir iddia değildir. LOS aynı zamanda case-mix ve episode
+karmaşıklığını da yansıtır.
 
 **Bu grafiğin sunumdaki önemi:**  
-LOS, modelimizin en güçlü özelliği olabilir.  
-Ama LOS'u tahmin etmek de zor — bu yüzden diğer değişkenler de kritik.
+LOS epizod tamamlandıktan sonra bilindiği için bu modeli admission-time model
+olarak konumlandırmıyoruz.
 """
 ))
 
@@ -338,15 +336,15 @@ los_groups = sub.groupby("LOS")["total_charge_aud"].agg(
 fig, ax = plt.subplots(figsize=(12, 5))
 ax.plot(los_groups["LOS"], los_groups["median"],
         color=PALETTE_MAIN, linewidth=2.5, marker="o",
-        markersize=5, label="Medyan Maliyet")
+        markersize=5, label="Medyan Charge")
 ax.fill_between(los_groups["LOS"],
                 los_groups["median"] * 0.7,
                 los_groups["median"] * 1.3,
                 alpha=0.15, color=PALETTE_MAIN)
 
 ax.set_xlabel("Yatış Süresi — LOS (Gün)", fontsize=12)
-ax.set_ylabel("Medyan Toplam Fatura ($AUD)", fontsize=12)
-ax.set_title("Yatış Süresine (LOS) Göre Medyan Maliyet\\n"
+ax.set_ylabel("Medyan Toplam Fatura / Charge ($AUD)", fontsize=12)
+ax.set_title("Yatış Süresine (LOS) Göre Medyan Charge\\n"
              "(LOS=0: günübirlik hastalar)",
              fontweight="bold", fontsize=14)
 ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"${x:,.0f}"))
@@ -372,16 +370,14 @@ save("03_los_vs_cost.png")
 # ──────────────────────────────────────────────────────────
 cells.append(md(
 """---
-## Grafik 5 — Komorbidite Sayısı vs Ortalama Maliyet
+## Grafik 5 — Komorbidite Sayısı vs Medyan Charge
 
-**Soru:** Ek hastalık sayısı arttıkça maliyet de artar mı?
+**Soru:** Kaydedilmiş ek tanı sayısı arttıkça medyan charge nasıl değişiyor?
 
-Bu grafik, modelimizin neden `comorbidity_count` özelliğini içermesi gerektiğini gösterir.  
-Güçlü bir pozitif ilişki = güçlü bir tahmin sinyali.
+Bu grafik, `comorbidity_count` özelliğinin tahmin sinyali taşıyıp taşımadığını gösterir.  
+Higher recorded comorbidity counts were associated with progressively higher median charges.
 
-**İspat değeri çok yüksek** — mülakatta şöyle diyebilirsiniz:  
-*"Komorbidite 0'dan 5'e çıktığında medyan maliyet X kat artıyor.  
-Bu, modelimin bu özelliği neden önemli bulduğunu açıklıyor."*
+Bu bir ilişki bulgusudur; coding practice ve case-mix etkileri nedeniyle nedensel yorum yapılmaz.
 """
 ))
 
@@ -401,7 +397,7 @@ fig, ax = plt.subplots(figsize=(11, 5))
 # Çubuk (medyan)
 bars = ax.bar(comorb_stats["comorbidity_grp"], comorb_stats["median"],
               color=PALETTE_MAIN, alpha=0.8, edgecolor="white",
-              label="Medyan Maliyet")
+              label="Medyan Charge")
 # IQR (q25–q75) error bars
 ax.errorbar(comorb_stats["comorbidity_grp"], comorb_stats["median"],
             yerr=[comorb_stats["median"] - comorb_stats["q25"],
@@ -418,8 +414,8 @@ x_labels = [str(int(x)) if x < 7 else "7+" for x in comorb_stats["comorbidity_gr
 ax.set_xticks(comorb_stats["comorbidity_grp"])
 ax.set_xticklabels(x_labels)
 ax.set_xlabel("Ek Tanı (Komorbidite) Sayısı", fontsize=12)
-ax.set_ylabel("Medyan Toplam Fatura ($AUD)", fontsize=12)
-ax.set_title("Komorbidite Sayısına Göre Medyan Maliyet\\n"
+ax.set_ylabel("Medyan Toplam Fatura / Charge ($AUD)", fontsize=12)
+ax.set_title("Komorbidite Sayısına Göre Medyan Charge\\n"
              "(hata çubukları: çeyrekler arası aralık)",
              fontweight="bold", fontsize=14)
 ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"${x:,.0f}"))
@@ -435,15 +431,14 @@ save("03_comorbidity_cost.png")
 # ──────────────────────────────────────────────────────────
 cells.append(md(
 """---
-## Grafik 6 — Günübirlik vs Yatışlı Hasta: Maliyet Karşılaştırması
+## Grafik 6 — Günübirlik vs Yatışlı Hasta: Charge Karşılaştırması
 
-**Soru:** Günübirlik ve yatışlı hastaların maliyetleri ne kadar farklı?
+**Soru:** Günübirlik ve yatışlı epizodların charge profilleri ne kadar farklı?
 
-**LOS=0 (günübirlik):** Hastanenin %78.4'ü — çoğunlukla diyaliz ve elektif prosedürler  
-**LOS>0 (yatışlı):**  Hastanenin %21.6'sı — daha karmaşık vakalar
+**LOS=0 (günübirlik):** yüksek hacimli ayrı bir segment  
+**LOS>0 (yatışlı):** farklı charge dağılımı ve case-mix profili
 
-Bu ayrım, hastane gelirinin nasıl yapılandığını anlamak için kritik.  
-Yatışlı hastalar ortalama X kat daha pahalı ama sayıca az.
+Same-day status produced one of the clearest univariate charge differences in EDA.
 """
 ))
 
@@ -467,7 +462,7 @@ parts["cmedians"].set_color(PALETTE_ACC); parts["cmedians"].set_linewidth(2.5)
 axes[0].set_xticks([0, 1])
 axes[0].set_xticklabels(["Günübirlik\\n(LOS=0)", "Yatışlı\\n(LOS≥1)"])
 axes[0].set_ylabel("Toplam Fatura ($AUD)")
-axes[0].set_title("Maliyet Dağılımı\\n(99. persantil kırpıldı)", fontweight="bold")
+axes[0].set_title("Charge Dağılımı\\n(99. persantil kırpıldı)", fontweight="bold")
 axes[0].yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"${x:,.0f}"))
 
 # Sağ: Özet tablo
@@ -494,7 +489,7 @@ for (r, c), cell in tbl.get_celld().items():
         cell.set_facecolor("#ecf0f1" if r % 2 else "white")
 axes[1].set_title("Özet İstatistikler", fontweight="bold", fontsize=13)
 
-fig.suptitle("Günübirlik vs Yatışlı Hasta Maliyet Karşılaştırması",
+fig.suptitle("Günübirlik vs Yatışlı Hasta Charge Karşılaştırması",
              fontsize=15, fontweight="bold", y=1.01)
 plt.tight_layout()
 save("03_sameday_vs_overnight.png")
@@ -507,15 +502,14 @@ save("03_sameday_vs_overnight.png")
 # ──────────────────────────────────────────────────────────
 cells.append(md(
 """---
-## Grafik 7 — Aylık Hacim ve Maliyet Trendi
+## Grafik 7 — Aylık Hacim ve Charge Trendi
 
-**Soru:** Hastane yılın hangi aylarında daha yoğun? Yoğunluk maliyeti etkiliyor mu?
+**Soru:** Gözlenen dönemde aylık hacim ve ortalama charge nasıl değişiyor?
 
-Mevsimsellik, hastane kapasitesi planlaması için kritik.  
-Kış aylarında solunum hastalıkları → acil başvurular artar.  
-Yaz tatilinde elektif ameliyatlar → planlanmış vakalar azalabilir.
+Tek veri kesitinde "seasonality" iddiası kurmuyoruz. Doğru ifade:
+**Monthly activity varied across the observed period.**
 
-Bu grafik, **temporal (zamana bağlı) desenleri** görselleştirir.
+Bu grafik, gözlenen dönem içindeki aylık değişimi görselleştirir.
 """
 ))
 
@@ -542,12 +536,12 @@ ax1.set_xticklabels(
     rotation=45, ha="right", fontsize=9
 )
 
-# İkincil eksen: ortalama maliyet
+# İkincil eksen: ortalama charge
 ax2 = ax1.twinx()
 ax2.plot(range(len(monthly)), monthly["mean_charge"],
          color=PALETTE_ACC, linewidth=2.5, marker="o",
-         markersize=6, label="Ort. Maliyet ($AUD)")
-ax2.set_ylabel("Ortalama Maliyet ($AUD)", color=PALETTE_ACC, fontsize=12)
+         markersize=6, label="Ort. Charge ($AUD)")
+ax2.set_ylabel("Ortalama Charge ($AUD)", color=PALETTE_ACC, fontsize=12)
 ax2.tick_params(axis="y", labelcolor=PALETTE_ACC)
 ax2.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"${x:,.0f}"))
 
@@ -556,7 +550,7 @@ lines1, labels1 = ax1.get_legend_handles_labels()
 lines2, labels2 = ax2.get_legend_handles_labels()
 ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
 
-ax1.set_title("Aylık Başvuru Hacmi ve Ortalama Maliyet Trendi (2023)",
+ax1.set_title("Aylık Başvuru Hacmi ve Ortalama Charge Değişimi",
               fontweight="bold", fontsize=14)
 plt.tight_layout()
 save("03_monthly_trend.png")
@@ -587,7 +581,7 @@ print("EDA BULGULARI ÖZETİ — SUNUMDA KULLANILACAK")
 print("=" * 60)
 
 findings = [
-    ("1. Maliyet çarpık",
+    ("1. Charge çarpık",
      f"Medyan ${df['total_charge_aud'].median():,.0f} "
      f"ama Ort. ${df['total_charge_aud'].mean():,.0f} — "
      f"→ Model log(charge) tahmin edecek"),
@@ -601,14 +595,12 @@ findings = [
      f"LOS=0 medyan ${df.loc[df['LOS']==0,'total_charge_aud'].median():,.0f} "
      f"vs LOS>0 medyan ${df.loc[df['LOS']>0,'total_charge_aud'].median():,.0f}"),
     ("5. Komorbidite",
-     "Her ek tanı ~%X maliyet artışı — "
-     "güçlü pozitif ilişki → önemli özellik"),
+     "Higher recorded comorbidity counts were associated with higher median charges"),
     ("6. Günübirlik ağırlık",
      f"%{(df['LOS']==0).mean()*100:.1f} günübirlik → "
      "yatışlı hasta segmenti ayrı modellenmeli"),
-    ("7. Mevsimsellik",
-     "Aylık hacimde belirgin dalgalanma — "
-     "kapasite planlaması için önemli"),
+    ("7. Aylık değişim",
+     "Monthly activity varied across the observed period"),
 ]
 for title, desc in findings:
     print(f"  {title:<22}: {desc}")

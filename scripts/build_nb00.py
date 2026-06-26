@@ -262,7 +262,7 @@ md(
 **Yapılanlar:** Resmi spec dosyasındaki 6 sayfayı okuyup özellikle
 **"Data Specifications - Episode"** sayfasını bir referans tablosuna
 çeviriyoruz. Ek olarak **CHARGE sütunlarının BİRİMİNİ** (sent mi dolar mı?)
-spec'ten teyit edip yazıyoruz — bu, tüm maliyet analizinin temeli.
+spec'ten teyit edip yazıyoruz — bu, tüm charge analizinin temeli.
 
 **Neden bu kadar önemli?**
 Veride `Sex=2`, `CareType=1`, `ModeOfSeparation=9` gibi kodlar var.
@@ -332,7 +332,7 @@ md(
 
 Roadmap'in "akla gelmeyen kritik noktalar #2" maddesi: *Rakamlar sent mi
 dolar mı?* (örn. `781300` = `$7.813` mi `$781,300` mu?). Yanlış birim tüm
-maliyet sunumunu çöpe atar. Spec'te ne yazıyor, bakalım:
+charge sunumunu çöpe atar. Spec'te ne yazıyor, bakalım:
 """
 )
 

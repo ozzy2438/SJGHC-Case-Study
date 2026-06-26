@@ -1,0 +1,6 @@
+feature_set,features,n_features,MAE,RMSE,R2
+Full model,LOS; Age; comorbidity_count; procedure_count; MDC_enc; Sex; CareType; UrgencyOfAdmission; SameDayStatus; ModeOfSeparation; adm_month,11,737.57,1845.19,0.8085
+Clinical only,comorbidity_count; procedure_count; MDC_enc; CareType; UrgencyOfAdmission,5,995.05,2335.05,0.6933
+No LOS/procedure count,Age; comorbidity_count; MDC_enc; Sex; CareType; UrgencyOfAdmission; SameDayStatus; ModeOfSeparation; adm_month,9,1007.4,2402.34,0.6753
+Operational only,LOS; SameDayStatus; ModeOfSeparation; adm_month,4,1650.58,3346.54,0.37
+Demographics only,Age; Sex,2,2212.0,4430.71,-0.1044

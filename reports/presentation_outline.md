@@ -4,72 +4,79 @@
 ---
 
 ### Slayt 1 — Başlık (30 sn)
-- **Başlık:** Hastane Epizod Maliyet Tahmini — HCP Veri Analizi
+- **Başlık:** Explainable Episode-Level Charge Benchmarking Using HCP Data
 - İsim, pozisyon, tarih
-- "30,615 hasta epizodunu analiz ettim ve maliyet tahmin modeli geliştirdim"
+- "30,615 tamamlanmış epizodu analiz ettim ve expected charge benchmarking modeli geliştirdim"
 
 ### Slayt 2 — Problem & Yaklaşım (1.5 dk)
-- **Soru:** Bir hastanın maliyetini taburculuk öncesi tahmin edebilir miyiz?
-- **Neden önemli:** Bütçe planlaması, kaynak tahsisi, fiyatlandırma
+- **Soru:** Tamamlanmış epizodlar için beklenen billed charge değerini ne kadar iyi tahmin edip olağandışı pahalı vakaları inceleyebiliriz?
+- **Kapsam:** Admission-time early warning değil; completed episode benchmarking
+- **Neden önemli:** Contract benchmarking, expected charge ranges, unusual charge review
 - **Yaklaşım:** 6 aşamalı pipeline (veri → temizlik → EDA → model → çıktı)
 
 ### Slayt 3 — Veri Genel Bakış (1.5 dk)
 - **Görsel:** figures/01_categorical_distributions.png
-- 30,615 epizod, 2023, özel akut hastane
+- 30,615 epizod, gözlenen dönem 2022-04-14–2023-06-30
 - %78 günübirlik, medyan yaş 67, %55 65 yaş üstü
-- **Veri kalitesi notu:** 27 sütun tamamen boştu (whitespace padding keşfi)
+- **Veri kalitesi notu:** whitespace-based missing values ve %100 boş sütunlar açıkça raporlandı
 
-### Slayt 4 — Maliyet Dağılımı (1.5 dk)
+### Slayt 4 — Charge Dağılımı (1.5 dk)
 - **Görsel:** figures/03_charge_distribution.png
 - Sağa çarpık: medyan $650, ortalama $2,685
-- **Karar:** Modeli log ölçekte eğittim → aykırı vakaların etkisini azalttım
+- **Karar:** Target log-transform edildi; yüksek charge epizodları hata metriğini domine etmesin diye
 
-### Slayt 5 — Kilit Bulgu: MDC Maliyet Farkı (2 dk)
+### Slayt 5 — MDC Charge Benchmarking (2 dk)
 - **Görsel:** figures/03_mdc_cost.png
-- Kategoriler arası 25 kat fark
-- Böbrek/Üriner (en sık) aslında en ucuz → diyaliz günübirlik
-- **Funding içgörüsü:** Hacim ≠ maliyet
+- MDC'ler arasında medyan charge farkları var; grafiklerde n sayısı ve medyan/IQR ile yorumlanmalı
+- Kidney/urinary epizodları daha düşük medyan charge gösterdi; bu durum yüksek same-day oranından etkilenmiş olabilir
+- **Not:** DRG-level case-mix analizi olmadan nedensel açıklama yapılmaz
 
-### Slayt 6 — Maliyet Sürücüleri (2 dk)
+### Slayt 6 — EDA Bulguları (2 dk)
 - **Görsel:** figures/03_los_vs_cost.png + figures/03_comorbidity_cost.png
 - LOS=0 medyan $480 vs LOS>0 $6,948
-- Komorbidite arttıkça maliyet doğrusal artıyor
+- Same-day status produced one of the clearest univariate charge differences in EDA
+- Higher recorded comorbidity counts were associated with progressively higher median charges
 
 ### Slayt 7 — Model Performansı (2 dk)
 - **Görsel:** figures/05_model_scorecard.png + figures/04_actual_vs_predicted.png
-- XGBoost, R² = 0.805, MAE = $751
-- 5-katlı CV ile doğrulandı (kararlı: ±0.011)
+- XGBoost: MAE = $737, RMSE = $1,844, R² = 0.809
+- Model comparison notu: Random Forest en iyi held-out performansı verdi; XGBoost çok yakın challenger olarak SHAP ve time-split analizinde kullanıldı
+- R² ifadesi: model held-out test set charge variation'ın %80.9'ini açıkladı
+- CV RMSE: 0.537 ± 0.012 on log-transformed target
 
-### Slayt 8 — Model Yorumlanabilirliği: SHAP (2 dk)
-- **Görsel:** figures/04_shap_summary.png
-- En güçlü sürücüler: Prosedür sayısı, MDC, LOS
-- **Önemli:** Model genç diyaliz hastalarının ucuz olduğunu kendi öğrendi
-- "Kara kutu değil — her tahmini açıklayabiliyoruz"
+### Slayt 8 — Model Karşılaştırma & Leakage (2 dk)
+- **Dosyalar:** reports/model_comparison.csv + reports/feature_list.csv + reports/leakage_audit.csv
+- Mean/median baseline, Linear Regression, Random Forest ve XGBoost karşılaştırıldı
+- Charge/benefit target component kolonları feature matrix dışında bırakıldı
+- Feature availability ayrımı: At admission vs after episode completion
 
-### Slayt 9 — İş Etkisi & Sonraki Adımlar (1.5 dk)
-- Bütçe tahmini, anomali tespiti (beklenenden pahalı vakalar)
-- Sonraki adım: gerçek maliyet (charge değil) verisiyle eğitim
-- Daha fazla özellik: spesifik tanı kodları, doktor, koğuş
+### Slayt 9 — Explainability & High-Cost Capture (1.5 dk)
+- **Görseller:** figures/04_shap_summary.png + 3 waterfall examples
+- SHAP sadece modelin feature'ları nasıl kullandığını gösterir; nedensellik iddiası değildir
+- High-cost review: reports/high_cost_capture.csv üst %10 actual charge yakalama oranını verir
 
-### Slayt 10 — Teşekkür & Sorular (30 sn)
-- GitHub repo linki
-- Sorular
+### Slayt 10 — Recommendations, Limitations & Questions (1.5 dk)
+- High residual episodes Funding & Costing review queue için kullanılabilir
+- MDC-specific expected charge ranges contract benchmarking destekleyebilir
+- Same-day ve overnight epizodlar ayrı benchmark edilmelidir
+- Limitations: single dataset, charge ≠ true cost, final episode features, random split caveat, no causality
+- Public GitHub'a raw/processed data, row-level predictions veya model artifact koyma
 
 ---
 
 ## Olası Mülakat Soruları ve Cevaplar
 
 **S: Neden XGBoost?**
-C: Çarpık, karma (kategorik+sayısal) tıbbi veride en iyi performans. SHAP ile yorumlanabilir.
+C: Random Forest en iyi held-out performansı verdi. XGBoost ise çok yakın challenger olduğu ve SHAP/time-split analizlerini güçlü desteklediği için explainability benchmark olarak kullanıldı. Sonuçlar reports/model_comparison.csv içinde.
 
 **S: R² 0.80 yeterli mi?**
-C: Sağlık maliyet tahmininde iyi bir sonuç. Charge verisi gerçek maliyet değil; gerçek maliyet verisiyle daha da iyileşir.
+C: "Accuracy %80" değil. Model held-out test set charge variation'ın yaklaşık %80.9'ini açıkladı. MAE yaklaşık $737.
 
 **S: Veri sızıntısı (data leakage) riski?**
-C: LOS taburculukta belli olur — modelim taburculuk-sonrası tahmin için. Gerçek-zamanlı tahmin için LOS çıkarılmalı.
+C: Charge/benefit component kolonları feature olarak kullanılmadı. LOS/procedure/comorbidity/final MDC gibi feature'lar epizod tamamlandıktan sonra bilindiği için model completed episode benchmarking kapsamındadır.
 
 **S: Eksik veriyi nasıl ele aldın?**
-C: Whitespace padding'i tespit ettim (pd.NA değil), %100 boş 27 sütunu çıkardım, kalan boşlukları sayım özelliğine çevirdim.
+C: Whitespace padding'i tespit ettim, %100 boş sütunları raporladım, data-quality summary ürettim ve target charge bileşenlerini ayrıca dokümante ettim.
 
 **S: Etik/gizlilik?**
-C: Veri de-identified. Confidential dosyalar .gitignore ile dışlandı, repoda asla yer almadı.
+C: Raw Excel, processed parquet, row-level worst predictions ve model artifact public GitHub'a konmamalı. Aggregate reports/figures paylaşılabilir.

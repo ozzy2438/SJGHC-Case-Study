@@ -1,0 +1,27 @@
+segment_type,segment,n,median_actual_charge_aud,MAE,RMSE,R2
+stay_type,Same-day,4836,479.94,324.92,982.56,0.591
+stay_type,Overnight/multi-day,1242,7057.0,2264.53,3508.04,0.6599
+charge_band,Low-cost <= train median $650,3266,357.1,54.75,266.04,-3.9329
+charge_band,"Mid-cost train median to P90 $650-$7,892",2263,2553.0,978.05,1571.58,0.2694
+charge_band,"High-cost > train P90 $7,892",594,12816.0,3566.01,5025.02,-0.1935
+MDC,B - Sinir Sistemi Hastalıkları,43,2355.0,1239.55,1942.42,0.8785
+MDC,C - Göz Hastalıkları,315,2636.0,549.66,852.84,0.0979
+MDC,"D - Kulak, Burun, Boğaz ve Ağız",207,2088.0,756.13,1682.08,0.2863
+MDC,E - Solunum Sistemi Hastalıkları,85,3719.0,2586.12,4349.65,0.4562
+MDC,F - Dolaşım Sistemi Hastalıkları,314,4904.0,2635.24,3937.14,0.317
+MDC,G - Sindirim Sistemi Hastalıkları,319,1580.0,1228.41,2736.43,0.6211
+MDC,"H - Karaciğer, Safra Kesesi ve Pankreas",58,5498.0,2395.98,3425.59,0.3189
+MDC,I - Kas-İskelet Sistemi Hastalıkları,617,6329.3,2055.86,3154.0,0.7711
+MDC,J - Deri ve Deri Altı Doku,107,3593.0,1943.54,2872.56,0.4421
+MDC,"K - Endokrin, Beslenme ve Metabolizma",69,8764.0,1245.1,1784.22,0.7922
+MDC,L - Böbrek ve Üriner Sistem,2034,357.1,106.53,581.8,0.8052
+MDC,M - Erkek Üreme Sistemi,71,2070.0,1655.93,2680.93,0.4348
+MDC,N - Kadın Üreme Sistemi,128,3987.0,1364.74,1801.71,0.6332
+MDC,"O - Gebelik, Doğum ve Lohusalık",97,6970.0,1137.43,1498.53,0.8457
+MDC,P - Yenidoğan,60,0.0,235.95,1093.0,-0.0445
+MDC,Q - Kan ve Kan Yapıcı Organ Hastalıkları,42,1102.0,642.91,1158.39,0.082
+MDC,R - Ruhsal Hastalıklar,1418,479.94,110.82,261.87,0.7765
+MDC,T - Enfeksiyöz ve Parazitik Hastalıklar,20,7693.0,4338.55,5937.44,0.2267
+MDC,V - Sağlık Durumunu Etkileyen Faktörler,1,3436.0,255.46,255.46,
+MDC,X - Diğer Faktörler,20,2947.5,1625.35,2294.11,-0.3833
+MDC,Z - Gruplandırılamayan,98,1174.0,508.37,1390.71,0.3508

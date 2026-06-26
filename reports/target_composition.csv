@@ -1,0 +1,12 @@
+charge_component,missing_count,nonzero_count,total_aud,median_nonzero_aud
+AccommodationCharge,0,19100,13654834.53,357.1
+TheatreCharge,0,2403,5160826.57,1831.7
+LabourWardCharge,0,17,28774.0,1703.0
+ICU_Charge,0,0,0.0,0.0
+ProsthesisCharge,0,5494,11913879.38,644.0
+PharmacyCharge,0,60,31549.07,188.72
+OtherCharges,0,244,131691.88,122.12
+BundledCharges,0,13985,51193901.78,2088.0
+HIH_Charges,0,3,2196.0,732.0
+SCN_Charges,0,2,2851.0,1425.5
+CCU_Charges,0,19,94835.89,4938.0

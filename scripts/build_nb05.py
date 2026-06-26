@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Build 05_outputs_export.ipynb — Çıktılar ve Sunum Hazırlığı
+Build 05_outputs_export.ipynb — Outputs and Presentation Readiness
 
 Adımlar:
   5.0  Setup + tüm artefaktları yükle (clean veri, model, metrikler)
   5.1  Yönetici özeti tablosu (executive summary) → reports/executive_summary.csv
-  5.2  MDC bazında maliyet özet tablosu → reports/mdc_cost_summary.csv
+  5.2  MDC bazında charge özet tablosu → reports/mdc_cost_summary.csv
   5.3  Model performans kartı (tek görsel) → figures/05_model_scorecard.png
   5.4  Sunum slayt planı (15 dakika için) → reports/presentation_outline.md
   5.5  Tüm çıktıların envanteri
@@ -35,9 +35,10 @@ Bu son notebook. Tüm analizimizi **sunulabilir çıktılara** dönüştürüyor
 
 Üreteceğimiz çıktılar:
 1. **Yönetici özeti tablosu** — tek bakışta tüm kilit rakamlar
-2. **MDC maliyet özet tablosu** — kategori bazında maliyet referansı
+2. **MDC charge özet tablosu** — kategori bazında expected charge referansı
 3. **Model performans kartı** — tek görselde tüm metrikler
 4. **Sunum taslağı** — 15 dakikalık konuşma planı
+5. **Validation pack** — leakage, baseline, segment, high-cost capture ve limitations çıktıları
 
 **Amaç:** SJGHC mülakatında 15 dakikalık PowerPoint sunumu için hazır malzeme.
 """
@@ -97,15 +98,16 @@ cells.append(code(
     ("Hasta Profili", "Medyan Yaş", f"{df['Age'].median():.0f} yaş"),
     ("Hasta Profili", "65+ Yaş Oranı", f"%{(df['Age']>=65).mean()*100:.1f}"),
     ("Hasta Profili", "Günübirlik Oranı", f"%{(df['LOS']==0).mean()*100:.1f}"),
-    ("Maliyet", "Medyan Fatura", f"${df['total_charge_aud'].median():,.0f}"),
-    ("Maliyet", "Ortalama Fatura", f"${df['total_charge_aud'].mean():,.0f}"),
-    ("Maliyet", "Maksimum Fatura", f"${df['total_charge_aud'].max():,.0f}"),
+    ("Charge", "Medyan Fatura", f"${df['total_charge_aud'].median():,.0f}"),
+    ("Charge", "Ortalama Fatura", f"${df['total_charge_aud'].mean():,.0f}"),
+    ("Charge", "Maksimum Fatura", f"${df['total_charge_aud'].max():,.0f}"),
     ("En Sık MDC", "Kategori",
      f"L — Böbrek/Üriner (%{(df['MDC']=='L').mean()*100:.1f})"),
     ("Model", "Algoritma", "XGBoost Regressor"),
-    ("Model", "Doğruluk (R²)", f"{metrics['aud_r2']:.3f}"),
+    ("Model", "Explained Variation (R²)", f"{metrics['aud_r2']:.3f}"),
     ("Model", "Ortalama Hata (MAE)", f"${metrics['aud_mae']:,.0f}"),
     ("Model", "Yüzde Hata (MAPE)", f"%{metrics['mape_pct']:.1f}"),
+    ("Model Scope", "Kullanım Alanı", "Completed episode charge benchmarking"),
 ]
 
 exec_summary = pd.DataFrame(summary_rows, columns=["Kategori", "Metrik", "Değer"])
@@ -121,12 +123,12 @@ print(exec_summary.to_string(index=False))
 # ──────────────────────────────────────────────────────────
 cells.append(md(
 """---
-## 5.2 — MDC Bazında Maliyet Özet Tablosu
+## 5.2 — MDC Bazında Charge Özet Tablosu
 
 Funding & Costing ekibinin en çok işine yarayacak tablo:  
-**"Her hastalık kategorisi ortalama ne kadara mal oluyor?"**
+**"Her hastalık kategorisi için tipik billed charge aralığı nedir?"**
 
-Bu tablo gelecekte bütçe planlaması için referans olabilir.
+Bu tablo contract benchmarking ve unusual charge review için referans olabilir.
 """
 ))
 
@@ -166,7 +168,7 @@ mdc_summary.to_csv(REPORTS / "mdc_cost_summary.csv", index=False)
 print("✓ Kaydedildi: reports/mdc_cost_summary.csv\\n")
 
 # En pahalı 10 kategoriyi göster
-print("Toplam maliyete göre en yüksek 10 MDC kategorisi:")
+print("Toplam billed charge değerine göre en yüksek 10 MDC kategorisi:")
 print("-" * 80)
 top10 = mdc_summary.head(10).copy()
 top10["Medyan"]   = top10["Medyan"].apply(lambda x: f"${x:,.0f}")
@@ -200,8 +202,8 @@ GREEN   = "#27ae60"
 
 # ─── Üst sıra: 3 büyük metrik kartı ───
 metric_cards = [
-    ("Doğruluk (R²)", f"{metrics['aud_r2']:.3f}",
-     f"Varyansın %{metrics['aud_r2']*100:.0f}'i açıklanıyor", GREEN),
+    ("Explained Variation (R²)", f"{metrics['aud_r2']:.3f}",
+     f"Test set charge variation explained: %{metrics['aud_r2']*100:.0f}", GREEN),
     ("Ortalama Hata", f"${metrics['aud_mae']:,.0f}",
      "Tahmin başına ortalama sapma", PRIMARY),
     ("Yüzde Hata", f"%{metrics['mape_pct']:.1f}",
@@ -245,7 +247,7 @@ ax_feat = fig.add_subplot(gs[1, 2])
 ax_feat.axis("off")
 feat_text = (
     f"Model: XGBoost Regressor\\n"
-    f"Hedef: log(toplam maliyet)\\n"
+    f"Hedef: log(toplam billed charge)\\n"
     f"Özellik sayısı: {len(metrics['features'])}\\n"
     f"Ağaç sayısı: {metrics['best_iter']}\\n"
     f"Eğitim örneği: {metrics['n_train']:,}\\n"
@@ -257,7 +259,7 @@ ax_feat.text(0.1, 0.5, feat_text, ha="left", va="center",
                        edgecolor=PRIMARY, linewidth=1.5))
 ax_feat.set_title("Model Yapılandırması", fontsize=10, fontweight="bold")
 
-fig.suptitle("Hasta Maliyet Tahmin Modeli — Performans Kartı",
+fig.suptitle("Completed Episode Charge Benchmarking — Performance Card",
              fontsize=16, fontweight="bold", y=0.99)
 plt.savefig(FIGS / "05_model_scorecard.png", dpi=150,
             bbox_inches="tight", facecolor="white")
@@ -286,75 +288,82 @@ cells.append(code(
 ---
 
 ### Slayt 1 — Başlık (30 sn)
-- **Başlık:** Hastane Epizod Maliyet Tahmini — HCP Veri Analizi
+- **Başlık:** Explainable Episode-Level Charge Benchmarking Using HCP Data
 - İsim, pozisyon, tarih
-- "30,615 hasta epizodunu analiz ettim ve maliyet tahmin modeli geliştirdim"
+- "30,615 tamamlanmış epizodu analiz ettim ve expected charge benchmarking modeli geliştirdim"
 
 ### Slayt 2 — Problem & Yaklaşım (1.5 dk)
-- **Soru:** Bir hastanın maliyetini taburculuk öncesi tahmin edebilir miyiz?
-- **Neden önemli:** Bütçe planlaması, kaynak tahsisi, fiyatlandırma
+- **Soru:** Tamamlanmış epizodlar için beklenen billed charge değerini ne kadar iyi tahmin edip olağandışı pahalı vakaları inceleyebiliriz?
+- **Kapsam:** Admission-time early warning değil; completed episode benchmarking
+- **Neden önemli:** Contract benchmarking, expected charge ranges, unusual charge review
 - **Yaklaşım:** 6 aşamalı pipeline (veri → temizlik → EDA → model → çıktı)
 
 ### Slayt 3 — Veri Genel Bakış (1.5 dk)
 - **Görsel:** figures/01_categorical_distributions.png
-- 30,615 epizod, 2023, özel akut hastane
+- 30,615 epizod, gözlenen dönem {df['AdmissionDate_dt'].min().date()}–{df['AdmissionDate_dt'].max().date()}
 - %78 günübirlik, medyan yaş 67, %55 65 yaş üstü
-- **Veri kalitesi notu:** 27 sütun tamamen boştu (whitespace padding keşfi)
+- **Veri kalitesi notu:** whitespace-based missing values ve %100 boş sütunlar açıkça raporlandı
 
-### Slayt 4 — Maliyet Dağılımı (1.5 dk)
+### Slayt 4 — Charge Dağılımı (1.5 dk)
 - **Görsel:** figures/03_charge_distribution.png
 - Sağa çarpık: medyan ${df['total_charge_aud'].median():,.0f}, ortalama ${df['total_charge_aud'].mean():,.0f}
-- **Karar:** Modeli log ölçekte eğittim → aykırı vakaların etkisini azalttım
+- **Karar:** Target log-transform edildi; yüksek charge epizodları hata metriğini domine etmesin diye
 
-### Slayt 5 — Kilit Bulgu: MDC Maliyet Farkı (2 dk)
+### Slayt 5 — MDC Charge Benchmarking (2 dk)
 - **Görsel:** figures/03_mdc_cost.png
-- Kategoriler arası 25 kat fark
-- Böbrek/Üriner (en sık) aslında en ucuz → diyaliz günübirlik
-- **Funding içgörüsü:** Hacim ≠ maliyet
+- MDC'ler arasında medyan charge farkları var; grafiklerde n sayısı ve medyan/IQR ile yorumlanmalı
+- Kidney/urinary epizodları daha düşük medyan charge gösterdi; bu durum yüksek same-day oranından etkilenmiş olabilir
+- **Not:** DRG-level case-mix analizi olmadan nedensel açıklama yapılmaz
 
-### Slayt 6 — Maliyet Sürücüleri (2 dk)
+### Slayt 6 — EDA Bulguları (2 dk)
 - **Görsel:** figures/03_los_vs_cost.png + figures/03_comorbidity_cost.png
 - LOS=0 medyan ${df.loc[df['LOS']==0,'total_charge_aud'].median():,.0f} vs LOS>0 ${df.loc[df['LOS']>0,'total_charge_aud'].median():,.0f}
-- Komorbidite arttıkça maliyet doğrusal artıyor
+- Same-day status produced one of the clearest univariate charge differences in EDA
+- Higher recorded comorbidity counts were associated with progressively higher median charges
 
 ### Slayt 7 — Model Performansı (2 dk)
 - **Görsel:** figures/05_model_scorecard.png + figures/04_actual_vs_predicted.png
-- XGBoost, R² = {metrics['aud_r2']:.3f}, MAE = ${metrics['aud_mae']:,.0f}
-- 5-katlı CV ile doğrulandı (kararlı: ±{metrics['cv_rmse_std']:.3f})
+- XGBoost: MAE = ${metrics['aud_mae']:,.0f}, RMSE = ${metrics['aud_rmse']:,.0f}, R² = {metrics['aud_r2']:.3f}
+- Model comparison notu: Random Forest en iyi held-out performansı verdi; XGBoost çok yakın challenger olarak SHAP ve time-split analizinde kullanıldı
+- R² ifadesi: model held-out test set charge variation'ın %{metrics['aud_r2']*100:.1f}'ini açıkladı
+- CV RMSE: {metrics['cv_rmse_mean']:.3f} ± {metrics['cv_rmse_std']:.3f} on log-transformed target
 
-### Slayt 8 — Model Yorumlanabilirliği: SHAP (2 dk)
-- **Görsel:** figures/04_shap_summary.png
-- En güçlü sürücüler: Prosedür sayısı, MDC, LOS
-- **Önemli:** Model genç diyaliz hastalarının ucuz olduğunu kendi öğrendi
-- "Kara kutu değil — her tahmini açıklayabiliyoruz"
+### Slayt 8 — Model Karşılaştırma & Leakage (2 dk)
+- **Dosyalar:** reports/model_comparison.csv + reports/feature_list.csv + reports/leakage_audit.csv
+- Mean/median baseline, Linear Regression, Random Forest ve XGBoost karşılaştırıldı
+- Charge/benefit target component kolonları feature matrix dışında bırakıldı
+- Feature availability ayrımı: At admission vs after episode completion
 
-### Slayt 9 — İş Etkisi & Sonraki Adımlar (1.5 dk)
-- Bütçe tahmini, anomali tespiti (beklenenden pahalı vakalar)
-- Sonraki adım: gerçek maliyet (charge değil) verisiyle eğitim
-- Daha fazla özellik: spesifik tanı kodları, doktor, koğuş
+### Slayt 9 — Explainability & High-Cost Capture (1.5 dk)
+- **Görseller:** figures/04_shap_summary.png + 3 waterfall examples
+- SHAP sadece modelin feature'ları nasıl kullandığını gösterir; nedensellik iddiası değildir
+- High-cost review: reports/high_cost_capture.csv üst %10 actual charge yakalama oranını verir
 
-### Slayt 10 — Teşekkür & Sorular (30 sn)
-- GitHub repo linki
-- Sorular
+### Slayt 10 — Recommendations, Limitations & Questions (1.5 dk)
+- High residual episodes Funding & Costing review queue için kullanılabilir
+- MDC-specific expected charge ranges contract benchmarking destekleyebilir
+- Same-day ve overnight epizodlar ayrı benchmark edilmelidir
+- Limitations: single dataset, charge ≠ true cost, final episode features, random split caveat, no causality
+- Public GitHub'a raw/processed data, row-level predictions veya model artifact koyma
 
 ---
 
 ## Olası Mülakat Soruları ve Cevaplar
 
 **S: Neden XGBoost?**
-C: Çarpık, karma (kategorik+sayısal) tıbbi veride en iyi performans. SHAP ile yorumlanabilir.
+C: Random Forest en iyi held-out performansı verdi. XGBoost ise çok yakın challenger olduğu ve SHAP/time-split analizlerini güçlü desteklediği için explainability benchmark olarak kullanıldı. Sonuçlar reports/model_comparison.csv içinde.
 
 **S: R² 0.80 yeterli mi?**
-C: Sağlık maliyet tahmininde iyi bir sonuç. Charge verisi gerçek maliyet değil; gerçek maliyet verisiyle daha da iyileşir.
+C: "Accuracy %80" değil. Model held-out test set charge variation'ın yaklaşık %{metrics['aud_r2']*100:.1f}'ini açıkladı. MAE yaklaşık ${metrics['aud_mae']:,.0f}.
 
 **S: Veri sızıntısı (data leakage) riski?**
-C: LOS taburculukta belli olur — modelim taburculuk-sonrası tahmin için. Gerçek-zamanlı tahmin için LOS çıkarılmalı.
+C: Charge/benefit component kolonları feature olarak kullanılmadı. LOS/procedure/comorbidity/final MDC gibi feature'lar epizod tamamlandıktan sonra bilindiği için model completed episode benchmarking kapsamındadır.
 
 **S: Eksik veriyi nasıl ele aldın?**
-C: Whitespace padding'i tespit ettim (pd.NA değil), %100 boş 27 sütunu çıkardım, kalan boşlukları sayım özelliğine çevirdim.
+C: Whitespace padding'i tespit ettim, %100 boş sütunları raporladım, data-quality summary ürettim ve target charge bileşenlerini ayrıca dokümante ettim.
 
 **S: Etik/gizlilik?**
-C: Veri de-identified. Confidential dosyalar .gitignore ile dışlandı, repoda asla yer almadı.
+C: Raw Excel, processed parquet, row-level worst predictions ve model artifact public GitHub'a konmamalı. Aggregate reports/figures paylaşılabilir.
 '''
 
 with open(REPORTS / "presentation_outline.md", "w") as f:
@@ -410,7 +419,7 @@ print(f'''
   Sıradaki adımlar (senin için):
   1. reports/presentation_outline.md ile slaytları hazırla
   2. figures/ klasöründeki PNG'leri slaytlara ekle
-  3. GitHub repo linkini sunuma koy
+  3. Repo paylaşılacaksa önce private/clean olduğundan emin ol; gerekirse link verme
   4. 30 Haziran 09:00 AWST'den önce Stephen.Lamb@sjog.org.au'ya gönder
 ''')
 """

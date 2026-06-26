@@ -1,0 +1,4 @@
+check,status,affected_columns,detail
+target_component_features_excluded,pass,,No charge/benefit target component is used as a model feature.
+feature_count_documented,pass,LOS; Age; comorbidity_count; procedure_count; MDC_enc; Sex; CareType; UrgencyOfAdmission; SameDayStatus; ModeOfSeparation; adm_month,11 model features documented in feature_list.csv.
+episode_completion_scope,pass,LOS; procedure_count; comorbidity_count; SameDayStatus; ModeOfSeparation; MDC_enc,"Several features are known only after completion/coding, so the model is scoped to completed episode benchmarking."

@@ -1,0 +1,10 @@
+check,affected_rows,affected_pct,affected_cells,detail
+negative_los,0,0.0,,LOS is negative.
+same_day_code_date_mismatch,0,0.0,,SameDayStatus does not match admission/separation dates as represented by LOS.
+invalid_same_day_status_code,235,0.768,,"SameDayStatus is outside expected codes 1=same-day, 2=overnight/multi-day."
+icu_charge_without_icu_days_or_hours,0,0.0,,ICU_Charge exists but ICU_Days and ICU_Hours are zero.
+theatre_charge_without_theatre_minutes,43,0.14,,TheatreCharge exists but TheatreMinutes is zero.
+total_charge_zero,430,1.405,,Total episode charge equals zero.
+whitespace_based_missing_values,30615,100.0,1356242,At least one string/object field is blank after stripping whitespace.
+duplicate_episode_identifier,0,0.0,,EpisodeIdentifier appears more than once.
+missing_target_values,0,0.0,,Target value is missing.

@@ -1,0 +1,11 @@
+Split,Model,MAE,RMSE,R2
+random_80_20,Mean baseline,2813.65,4216.71,-0.0003
+random_80_20,Median baseline,2231.08,4658.62,-0.2209
+random_80_20,Linear Regression,1976.78,16161.66,-13.6938
+random_80_20,Random Forest,719.67,1829.01,0.8118
+random_80_20,XGBoost,736.62,1843.96,0.8087
+time_last_20_pct_by_admission_date,Mean baseline,2850.42,4374.26,-0.0
+time_last_20_pct_by_admission_date,Median baseline,2273.11,4821.01,-0.2147
+time_last_20_pct_by_admission_date,Linear Regression,1768.47,8960.82,-3.1965
+time_last_20_pct_by_admission_date,Random Forest,760.69,2068.2,0.7764
+time_last_20_pct_by_admission_date,XGBoost,768.92,2072.88,0.7754

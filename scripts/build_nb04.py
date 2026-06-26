@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Build 04_modeling.ipynb — XGBoost Maliyet Tahmin Modeli
+Build 04_modeling.ipynb — Completed Episode Charge Benchmarking Model
 
 Adımlar:
   4.0  Setup + veri yükleme
@@ -30,24 +30,31 @@ def code(src): return nbf.v4.new_code_cell(src)
 # BAŞLIK
 # ──────────────────────────────────────────────────────────
 cells.append(md(
-"""# Notebook 4 — XGBoost Maliyet Tahmin Modeli
+"""# Notebook 4 — Completed Episode Charge Benchmarking Model
 
 ## Bu notebook ne yapıyor?
 
 EDA'da verimizi görselleştirdik ve kalıpları keşfettik.  
 Şimdi bu kalıpları **matematiksel bir modele** dönüştürüyoruz.
 
-**Hedef:** Bir hastanın taburculuk öncesinde toplam maliyetini ($AUD) tahmin et.
+**Hedef:** Tamamlanmış bir epizod için beklenen billed charge değerini ($AUD) tahmin etmek.
 
-**Neden XGBoost?**
-- Tıbbi maliyet verisi gibi **karma, çarpık, kategorik veri** içeren problemlerde en iyi performans gösterir
+Bu model **admission-time early warning** modeli değildir. `LOS`, `procedure_count`,
+`comorbidity_count`, `SameDayStatus`, `ModeOfSeparation` ve final DRG/MDC bilgisi gibi
+özellikler epizod tamamlandıktan sonra netleşir. Doğru kullanım alanı:
+
+**Completed episode charge benchmarking, expected charge estimation and unusual charge review.**
+
+**Neden XGBoost'u test ediyoruz?**
+- Sağlık charge verisi gibi **karma, çarpık, kategorik veri** içeren problemlerde güçlü bir adaydır
 - Özellik ölçeklendirmesine ihtiyaç duymaz (ağaç tabanlı)
 - **SHAP** ile neden bu tahmini yaptığını açıklayabiliriz (yorumlanabilirlik)
 - Eksik değerlerle başa çıkabilir
+- Ancak tek başına yeterli değildir; baseline, Linear Regression ve Random Forest ile karşılaştırılacaktır.
 
 **Log dönüşümü neden?**  
-`total_charge_aud` çok çarpık (skew=+5). Model doğrudan AUD'u tahmin etmeye çalışırsa,  
-`$50,000` olan birkaç vaka tüm hatayı domine eder.  
+`total_charge_aud` çok sağa çarpık. Model doğrudan AUD'u tahmin etmeye çalışırsa,  
+çok yüksek charge değerleri hatayı domine edebilir.  
 Çözüm: `log(1 + x)` → tahmin et → `exp(x) - 1` → AUD'a döndür.
 """
 ))
@@ -98,24 +105,27 @@ cells.append(md(
 
 **Hangi özellikler seçildi ve neden?**
 
-| Özellik | Tür | Neden dahil? |
-|---|---|---|
-| `LOS` | Sayısal | Yatış süresi = en güçlü maliyet belirleyici |
-| `Age` | Sayısal | Yaşlı hastalar genellikle daha pahalı |
-| `comorbidity_count` | Sayısal | Ek hastalık = bakım karmaşıklığı ↑ |
-| `procedure_count` | Sayısal | Daha fazla prosedür = daha fazla maliyet |
-| `MDC_enc` | Kategorik | Hangi hastalık kategorisi? (label encoded) |
-| `Sex` | Kategorik | Cinsiyet bazlı bakım farklılığı |
-| `CareType` | Kategorik | Akut/palyatif/yenidoğan |
-| `UrgencyOfAdmission` | Kategorik | Acil vs elektif fark yaratır |
-| `SameDayStatus` | Kategorik | Günübirlik/yatışlı |
-| `ModeOfSeparation` | Kategorik | Nasıl taburcu oldu? |
-| `adm_month` | Sayısal | Mevsimsellik etkisi |
+| Özellik | Tür | Kullanım anında mevcut mu? | Neden dahil? |
+|---|---|---|---|
+| `LOS` | Sayısal | After episode completion | Gerçekleşen kullanım yoğunluğunu özetler |
+| `Age` | Sayısal | At admission | Demografik case-mix sinyali |
+| `comorbidity_count` | Sayısal | After episode completion/coding | Kaydedilmiş ek tanı yükünü özetler |
+| `procedure_count` | Sayısal | After episode completion/coding | Uygulanan işlem yükünü özetler |
+| `MDC_enc` | Kategorik | After final DRG coding | Geniş klinik kategori |
+| `Sex` | Kategorik | At admission | Case-mix tanımlayıcı |
+| `CareType` | Kategorik | At admission / during episode | Bakım türü |
+| `UrgencyOfAdmission` | Kategorik | At admission | Acil/elektif ayrımı |
+| `SameDayStatus` | Kategorik | After episode completion | Günübirlik/yatışlı ayrımı |
+| `ModeOfSeparation` | Kategorik | After episode completion | Ayrılış durumu |
+| `adm_month` | Sayısal | At admission | Gözlenen dönem içi aylık değişim |
 
 **Dahil edilmeyenler:**
-- `HospitalType`: tek değer (tüm satırlar = 2) → sıfır varyans → bilgi yok
+- Tüm charge/benefit alanları: hedef değişkeni oluşturan kolonlar olduğu için **data leakage** olur
+- `HospitalType`: tek değer → sıfır varyans → bilgi yok
 - Bireysel tanı/prosedür sütunları: çok seyrek, `comorbidity_count` zaten özetliyor
 - Datetime sütunları: ayı ayrıca çıkardık, ham tarih gereksiz
+
+Bu nedenle modelin 11 feature'ı açıkça `reports/feature_list.csv` dosyasına yazılacaktır.
 """
 ))
 
@@ -409,8 +419,8 @@ cells.append(md(
 ## 4.6 — Gerçek vs Tahmin Grafiği
 
 **Nasıl okuyoruz?**
-- X ekseni: gerçek maliyet
-- Y ekseni: modelin tahmini
+- X ekseni: gerçek episode charge
+- Y ekseni: modelin tahmini charge değeri
 - **Kırmızı çizgi**: mükemmel tahmin (y = x)
 - Noktalar çizgiye ne kadar yakınsa model o kadar iyi
 
@@ -431,8 +441,8 @@ sc = axes[0].scatter(y_true_aud[mask97], y_pred_aud[mask97],
 # Mükemmel tahmin çizgisi
 lims = [0, clip_val]
 axes[0].plot(lims, lims, "r--", lw=1.8, label="Mükemmel Tahmin (y=x)")
-axes[0].set_xlabel("Gerçek Maliyet ($AUD)")
-axes[0].set_ylabel("Tahmin Edilen Maliyet ($AUD)")
+axes[0].set_xlabel("Gerçek Episode Charge ($AUD)")
+axes[0].set_ylabel("Tahmin Edilen Episode Charge ($AUD)")
 axes[0].set_title(f"Gerçek vs Tahmin\\nR² = {r2_aud:.3f}", fontweight="bold")
 axes[0].xaxis.set_major_formatter(mticker.FuncFormatter(lambda x,_: f"${x:,.0f}"))
 axes[0].yaxis.set_major_formatter(mticker.FuncFormatter(lambda x,_: f"${x:,.0f}"))
@@ -478,11 +488,11 @@ Her özelliğin her tahmine ne kadar "katkı" yaptığını hesaplar.
 
 **Grafik nasıl okunur?**
 - Her nokta = bir hasta
-- X ekseni: SHAP değeri (sağa → maliyet ↑, sola → maliyet ↓)
+- X ekseni: SHAP değeri (sağa → predicted charge ↑, sola → predicted charge ↓)
 - Renk: özelliğin değeri (kırmızı = yüksek, mavi = düşük)
 
 **Örnek yorum:**  
-`LOS` satırında kırmızı noktalar sağda → LOS yüksekse maliyet tahminini artırıyor ✓
+`LOS` satırında kırmızı noktalar sağda → model yüksek LOS değerlerini daha yüksek predicted charge ile ilişkilendiriyor.
 """
 ))
 
@@ -504,7 +514,7 @@ shap.summary_plot(
     show=False,
     plot_size=None,
 )
-plt.title("SHAP Özellik Önemi — Her Özelliğin Maliyet Tahminine Katkısı",
+plt.title("SHAP Özellik Önemi — Her Özelliğin Predicted Charge Katkısı",
           fontsize=13, fontweight="bold", pad=12)
 plt.tight_layout()
 plt.savefig(FIGS / "04_shap_summary.png", dpi=150, bbox_inches="tight",
@@ -606,6 +616,50 @@ print(f"  Test MAPE     : {mape:.1f}%")
 print(f"  Best iteration: {model.best_iteration + 1} ağaç")
 print("=" * 55)
 print("\\n→ Sıradaki: NB5 (Çıktılar ve Sunum)")
+"""
+))
+
+
+# ──────────────────────────────────────────────────────────
+# 4.9 VALIDATION DELIVERABLES
+# ──────────────────────────────────────────────────────────
+cells.append(md(
+"""---
+## 4.9 — Critical Validation Deliverables
+
+Bu son adım, panelin sorabileceği teknik sorular için ek doğrulama paketini üretir:
+
+- `reports/model_comparison.csv` — mean/median baseline, Linear Regression, Random Forest, XGBoost
+- `reports/segment_performance.csv` — same-day, overnight, charge band ve MDC bazında performans
+- `reports/worst_predictions.csv` — lokal inceleme için en yüksek hatalı satırlar (**public GitHub'a konmaz**)
+- `reports/data_quality_summary.csv` — HCP data-quality kontrolleri
+- `reports/feature_list.csv` ve `reports/leakage_audit.csv` — feature availability ve leakage kontrolü
+- `reports/high_cost_capture.csv` — üst %10 charge epizodlarını yakalama oranı
+- `reports/feature_ablation.csv` — feature grup katkısı
+- `reports/final_metrics.json` ve `reports/limitations.md`
+- SHAP waterfall/dependence figürleri
+"""
+))
+
+cells.append(code(
+"""import subprocess, sys
+
+validation_script = ROOT / "scripts" / "generate_validation_outputs.py"
+subprocess.run([sys.executable, str(validation_script)], check=True)
+
+print("\\nValidation outputs generated. Key files:")
+for name in [
+    "model_comparison.csv",
+    "segment_performance.csv",
+    "data_quality_summary.csv",
+    "feature_list.csv",
+    "high_cost_capture.csv",
+    "feature_ablation.csv",
+    "final_metrics.json",
+    "limitations.md",
+]:
+    print(f"  reports/{name}")
+print("  reports/worst_predictions.csv  (local only; ignored by git)")
 """
 ))
 

@@ -1,0 +1,12 @@
+feature,display_name,feature_group,availability,included_in_model,target_contamination_risk,rationale
+LOS,Length of stay,Operational/utilisation,After episode completion,True,no,Captures realised utilisation; makes this an episode-completion benchmarking model.
+Age,Age,Demographic,At admission,True,no,Demographic case-mix signal available before modelling.
+comorbidity_count,Recorded comorbidity count,Clinical summary,After episode completion,True,no,Summary of recorded additional diagnoses and clinical complexity.
+procedure_count,Recorded procedure count,Clinical summary,After episode completion,True,no,Summary of recorded interventions and clinical activity.
+MDC_enc,MDC,Clinical grouping,After coding/final DRG grouping,True,no,Broad final diagnostic grouping derived from DRG.
+Sex,Sex,Demographic,At admission,True,no,Case-mix descriptor.
+CareType,Care type,Administrative/clinical,At admission or during episode,True,no,Administrative/clinical care stream.
+UrgencyOfAdmission,Admission urgency,Administrative,At admission,True,no,Emergency/elective status.
+SameDayStatus,Same-day status,Operational/utilisation,After episode completion,True,no,Separates same-day and overnight activity profiles.
+ModeOfSeparation,Mode of separation,Administrative/outcome,After episode completion,True,no,Final episode separation status; useful for completed episode review.
+adm_month,Admission month,Temporal,At admission,True,no,Observed month-level variation over the study period.

@@ -11,6 +11,9 @@ data/raw/*
 data/processed/*
 !data/processed/.gitkeep
 *.parquet
+reports/worst_predictions.csv
+reports/patient_level_predictions*.csv
+reports/xgb_model.json
 
 # --- 2) Python sanal ortam ---
 .venv/

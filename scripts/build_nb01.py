@@ -41,7 +41,7 @@ verimize aynı şekilde bakıyoruz. Tek bir satır analiz yazmadan önce
 
 ### Bu notebook'un çıktıları:
 1. Her sütunun **boşluk yüzdesi** — bar grafik + `reports/null_summary.csv`
-2. **%100 boş 64 sütunun listesi** ve neden drop ettiğimiz
+2. **%100 boş sütunların listesi** ve neden drop ettiğimiz
 3. 6 anahtar kategorik sütunun **gerçek dağılımı** (sayısal kod → anlam)
 4. Tarih sütunlarının **format teyidi** (DDMMYYYY olduğunu kanıtlayan örnekler)
 
@@ -151,7 +151,7 @@ Bu sütun sayısal görünüyor ama aslında **kategori**. Bu tuzağa düşme.
 - **min / max**: en küçük / en büyük
 - **25% / 50% / 75%**: yüzdelikler (medyan = 50%)
 
-Maliyet ve yatış süresi gibi sütunlar genellikle **sağa çarpık** dağılır:
+Charge ve yatış süresi gibi sütunlar genellikle **sağa çarpık** dağılır:
 birkaç çok pahalı vaka ortalamaı yukarı çeker, ama çoğu vaka ucuzdur.
 Bu yüzden ortalama yerine **medyan (50%)** daha güvenilir bir merkez ölçüsüdür.
 """
@@ -650,7 +650,7 @@ md(
 
 | Başlangıç | İşlem | Sonuç |
 |-----------|-------|-------|
-| 162 sütun | %100 boş 64 sütun drop | **~98 sütun** kullanılabilir |
+| 162 sütun | %100 boş sütunları drop | Temizleme notebook'unda kullanılabilir sütun seti |
 | Karmaşık sayısal kodlar | Sözlükle eşleştirme | İnsan okunabilir etiketler |
 | `DDMMYYYY` integer tarihler | Format teyit testi | NB2 hazır |
 
@@ -662,7 +662,7 @@ Bu, planlı ameliyat/prosedür ağırlıklı bir hastane portföyüne işaret ed
 
 **2️⃣ Günübirlik hasta oranı yüksek:**
 `SameDayStatus=1` (aynı gün giriş-çıkış) anlamlı bir pay oluşturuyor.
-Bunların maliyet profili yatışlılardan çok farklı → NB3'te ayrı analiz.
+Bunların charge profili yatışlılardan çok farklı → NB3'te ayrı analiz.
 
 **3️⃣ Bilinmiyor (kod 9) oranı düşük — veri temiz:**
 Kritik sütunlarda `9 = Not stated` sayısı toplam kaydın küçük bir yüzdesi.
